@@ -31,9 +31,8 @@ jobs:
 
       - name: sort dim.json
         run: |
-          cd src/locale
           allLocales=()
-          mapfile -t -d '' allLocales < <(find . -name "dim.json")
+          mapfile -t -d '' allLocales < <(find . -type f -path 'src/locale' -name "dim.json")
           for file in ${allLocales[@]}; do
             jq -S . $file >"$file"_sorted && mv "$file"_sorted $file
           done
