@@ -30,13 +30,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: sort dim.json
-        run: jq -S . src/locale/dim.json > src/locale/dim_sorted.json && mv src/locale/dim_sorted.json src/locale/dim.json
-
-      - name: sort locale dim.json
         run: |
-          allLocales=("de" "es" "es-mx" "fr" "it" "ja" "ko" "pl" "pt-br" "ru" "zh-chs" "zh-cht")
-          for lang in ${allLocales[@]}; do
-            jq -S . src/locale/$lang/dim.json > src/locale/$lang/dim_sorted.json && mv src/locale/$lang/dim_sorted.json src/locale/$lang/dim.json
+          cd src/locale
+          allLocales=()
+          mapfile -t -d '' allLocales < <(find . -name "dim.json")
+          for file in ${allLocales[@]}; do
+            jq -S . $file >"$file"_sorted && mv "$file"_sorted $file
           done
 
       - name: Check for new files (DIM)
