@@ -6,7 +6,10 @@ export interface Settings extends DimApiSettings {
   readonly organizerColumnsGhost: string[];
   readonly loMinPower: number;
   readonly loMinStatTotal: number;
-  compareBaseStats: boolean;
+  readonly compareBaseStats: boolean;
+
+  /** Whether to show a minimal sidecar on desktop */
+  readonly collapseSidecar: boolean;
 }
 
 export const initialSettingsState: Settings = {
@@ -17,4 +20,5 @@ export const initialSettingsState: Settings = {
   loMinStatTotal: 55,
   organizerColumnsGhost: ['icon', 'name', 'locked', 'tag', 'ghost', 'perks', 'notes'],
   compareBaseStats: false,
+  collapseSidecar: false,
 };

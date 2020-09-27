@@ -1,9 +1,11 @@
 import { CompareService } from 'app/compare/compare.service';
+import { settingsSelector } from 'app/dim-api/selectors';
 import { t } from 'app/i18next-t';
 import { getTag } from 'app/inventory/dim-item-info';
 import { amountOfItem, getStore } from 'app/inventory/stores-helpers';
 import TagIcon from 'app/inventory/TagIcon';
 import { addItemToLoadout } from 'app/loadout/LoadoutDrawer';
+import { setSetting } from 'app/settings/actions';
 import { addIcon, AppIcon, faAngleLeft, faAngleRight, faClone } from 'app/shell/icons';
 import { RootState, ThunkDispatchProp } from 'app/store/types';
 import { itemCanBeEquippedBy, itemCanBeInLoadout } from 'app/utils/item-utils';
@@ -47,8 +49,10 @@ export default function DesktopItemActions({ item }: { item: DimItem }) {
   const itemTag = useSelector((state: RootState) =>
     getTag(item, itemInfosSelector(state), itemHashTagsSelector(state))
   );
-
-  const [minimized, setMinimized] = useState(false);
+  const minimized = useSelector((state: RootState) => settingsSelector(state).collapseSidecar);
+  const toggleMinimized = () => {
+    dispatch(setSetting('collapseSidecar', !minimized));
+  };
 
   // If the item can't be transferred (or is unique) don't show the move amount slider
   const maximum = useMemo(
@@ -144,7 +148,7 @@ export default function DesktopItemActions({ item }: { item: DimItem }) {
         className={clsx(styles.interaction, { [styles.minimized]: minimized })}
         ref={containerRef}
       >
-        <div className={styles.minimizeButton} onClick={() => setMinimized((m) => !m)}>
+        <div className={styles.minimizeButton} onClick={toggleMinimized} role="button">
           <AppIcon icon={minimized ? faAngleLeft : faAngleRight} />
         </div>
         {item.destinyVersion === 1 && maximum > 1 && (
