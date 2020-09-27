@@ -8,6 +8,8 @@ interface CssExports {
   'equip': string;
   'interaction': string;
   'itemTagSelector': string;
+  'minimizeButton': string;
+  'minimized': string;
   'move': string;
   'null': string;
 }

@@ -35,6 +35,10 @@
     width: 16px;
     font-size: 16px;
     text-align: center;
+
+    .minimized & {
+      margin-right: 0;
+    }
   }
   :global(.app-icon) {
     color: #eee;
@@ -106,4 +110,10 @@
 
 .equip {
   margin-bottom: 6px;
+}
+
+.minimizeButton {
+  padding: 8px 12px 4px 12px;
+  font-size: 14px;
+  text-align: center;
 }

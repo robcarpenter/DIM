@@ -4,7 +4,7 @@ import { getTag } from 'app/inventory/dim-item-info';
 import { amountOfItem, getStore } from 'app/inventory/stores-helpers';
 import TagIcon from 'app/inventory/TagIcon';
 import { addItemToLoadout } from 'app/loadout/LoadoutDrawer';
-import { addIcon, AppIcon, faClone } from 'app/shell/icons';
+import { addIcon, AppIcon, faAngleLeft, faAngleRight, faClone } from 'app/shell/icons';
 import { RootState, ThunkDispatchProp } from 'app/store/types';
 import { itemCanBeEquippedBy, itemCanBeInLoadout } from 'app/utils/item-utils';
 import { DestinyClass } from 'bungie-api-ts/destiny2';
@@ -47,6 +47,8 @@ export default function DesktopItemActions({ item }: { item: DimItem }) {
   const itemTag = useSelector((state: RootState) =>
     getTag(item, itemInfosSelector(state), itemHashTagsSelector(state))
   );
+
+  const [minimized, setMinimized] = useState(false);
 
   // If the item can't be transferred (or is unique) don't show the move amount slider
   const maximum = useMemo(
@@ -138,7 +140,13 @@ export default function DesktopItemActions({ item }: { item: DimItem }) {
 
   return (
     <>
-      <div className={styles.interaction} ref={containerRef}>
+      <div
+        className={clsx(styles.interaction, { [styles.minimized]: minimized })}
+        ref={containerRef}
+      >
+        <div className={styles.minimizeButton} onClick={() => setMinimized((m) => !m)}>
+          <AppIcon icon={minimized ? faAngleLeft : faAngleRight} />
+        </div>
         {item.destinyVersion === 1 && maximum > 1 && (
           <ItemMoveAmount
             amount={amount}
@@ -150,7 +158,7 @@ export default function DesktopItemActions({ item }: { item: DimItem }) {
         {item.taggable && (
           <div className={styles.itemTagSelector}>
             {itemTag ? <TagIcon tag={itemTag} /> : <div className={styles.null} />}
-            <ItemTagSelector item={item} />
+            {!minimized && <ItemTagSelector item={item} />}
           </div>
         )}
         {(item.lockable || item.trackable) && (
@@ -159,71 +167,73 @@ export default function DesktopItemActions({ item }: { item: DimItem }) {
             item={item}
             type={item.lockable ? 'lock' : 'track'}
           >
-            {lockButtonTitle(item, item.lockable ? 'lock' : 'track')}
+            {!minimized && lockButtonTitle(item, item.lockable ? 'lock' : 'track')}
           </LockButton>
         )}
-        {stores.map((store) => (
-          <React.Fragment key={store.id}>
-            {canShowVault(store, itemOwner, item) && (
-              <div
-                className={styles.actionButton}
-                onClick={() => onMoveItemTo(store)}
-                role="button"
-                tabIndex={-1}
-              >
-                <StoreIcon store={store} />
-                {t('MovePopup.Vault')}
-              </div>
-            )}
-            {canShowStore(store, itemOwner, item) && (
-              <div
-                className={clsx(styles.actionButton, styles.move, {
-                  [styles.disabled]: item.owner === store.id && !item.equipped,
-                })}
-                onClick={() => onMoveItemTo(store)}
-                role="button"
-                tabIndex={-1}
-              >
-                <StoreIcon store={store} /> {t('MovePopup.Store')}
-              </div>
-            )}
-            {itemCanBeEquippedBy(item, store) && (
-              <div
-                className={clsx(styles.actionButton, styles.equip, {
-                  [styles.disabled]: item.owner === store.id && item.equipped,
-                })}
-                onClick={() => onMoveItemTo(store, true)}
-                role="button"
-                tabIndex={-1}
-              >
-                <StoreIcon store={store} /> {t('MovePopup.Equip')}
-              </div>
-            )}
-          </React.Fragment>
-        ))}
+        {!minimized &&
+          stores.map((store) => (
+            <React.Fragment key={store.id}>
+              {canShowVault(store, itemOwner, item) && (
+                <div
+                  className={styles.actionButton}
+                  onClick={() => onMoveItemTo(store)}
+                  role="button"
+                  tabIndex={-1}
+                >
+                  <StoreIcon store={store} />
+                  {t('MovePopup.Vault')}
+                </div>
+              )}
+              {canShowStore(store, itemOwner, item) && (
+                <div
+                  className={clsx(styles.actionButton, styles.move, {
+                    [styles.disabled]: item.owner === store.id && !item.equipped,
+                  })}
+                  onClick={() => onMoveItemTo(store)}
+                  role="button"
+                  tabIndex={-1}
+                >
+                  <StoreIcon store={store} /> {t('MovePopup.Store')}
+                </div>
+              )}
+              {itemCanBeEquippedBy(item, store) && (
+                <div
+                  className={clsx(styles.actionButton, styles.equip, {
+                    [styles.disabled]: item.owner === store.id && item.equipped,
+                  })}
+                  onClick={() => onMoveItemTo(store, true)}
+                  role="button"
+                  tabIndex={-1}
+                >
+                  <StoreIcon store={store} /> {t('MovePopup.Equip')}
+                </div>
+              )}
+            </React.Fragment>
+          ))}
         {item.comparable && (
           <div className={styles.actionButton} onClick={openCompare} role="button" tabIndex={-1}>
-            <AppIcon icon={faClone} /> {t('Compare.Button')}
+            <AppIcon icon={faClone} /> {!minimized && t('Compare.Button')}
           </div>
         )}
         {canConsolidate && (
           <div className={styles.actionButton} onClick={onConsolidate} role="button" tabIndex={-1}>
-            <img src={arrowsIn} height="32" width="32" /> {t('MovePopup.Consolidate')}
+            <img src={arrowsIn} height="32" width="32" /> {!minimized && t('MovePopup.Consolidate')}
           </div>
         )}
         {canDistribute && (
           <div className={styles.actionButton} onClick={onDistribute} role="button" tabIndex={-1}>
-            <img src={arrowsOut} height="32" width="32" /> {t('MovePopup.DistributeEvenly')}
+            <img src={arrowsOut} height="32" width="32" />{' '}
+            {!minimized && t('MovePopup.DistributeEvenly')}
           </div>
         )}
         {itemCanBeInLoadout(item) && (
           <div className={styles.actionButton} onClick={addToLoadout} role="button" tabIndex={-1}>
-            <AppIcon icon={addIcon} /> {t('MovePopup.AddToLoadout')}
+            <AppIcon icon={addIcon} /> {!minimized && t('MovePopup.AddToLoadout')}
           </div>
         )}
         {item.infusionFuel && (
           <div className={styles.actionButton} onClick={infuse} role="button" tabIndex={-1}>
-            <img src={d2Infuse} height="32" width="32" /> {t('MovePopup.Infuse')}
+            <img src={d2Infuse} height="32" width="32" /> {!minimized && t('MovePopup.Infuse')}
           </div>
         )}
       </div>
