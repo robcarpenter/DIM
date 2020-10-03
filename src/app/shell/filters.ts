@@ -150,18 +150,18 @@ export function sortItems(items: DimItem[], itemSortOrder: string[]) {
   }
 
   const itemLocationId = items[0].location.hash;
-  if (!items.length || ITEM_SORT_DENYLIST.has(itemLocationId)) {
+  if (ITEM_SORT_DENYLIST.has(itemLocationId)) {
     return items;
   }
 
   let specificSortOrder: number[] = [];
   // Group like items in the General Section
-  if (itemLocationId === BucketHashes.Consumables) {
+  if (items[0].destinyVersion === 1 && itemLocationId === BucketHashes.Consumables) {
     specificSortOrder = D1_CONSUMABLE_SORT_ORDER;
   }
 
   // Group like items in the General Section
-  if (itemLocationId === BucketHashes.Materials) {
+  if (items[0].destinyVersion === 1 && itemLocationId === BucketHashes.Materials) {
     specificSortOrder = D1_MATERIAL_SORT_ORDER;
   }
 
