@@ -3,7 +3,6 @@
 interface CssExports {
   'activityColumn': string;
   'activityInventory': string;
-  'activitySplit': string;
   'bucketLabel': string;
   'collapsed': string;
   'inventoryCategory': string;

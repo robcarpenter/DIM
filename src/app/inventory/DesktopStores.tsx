@@ -1,3 +1,5 @@
+import ActiveMode from 'app/active-mode/ActiveMode';
+import InventoryToggle from 'app/active-mode/InventoryModeToggle';
 import { t } from 'app/i18next-t';
 import HeaderShadowDiv from 'app/inventory/HeaderShadowDiv';
 import InventoryCollapsibleTitle from 'app/inventory/InventoryCollapsibleTitle';
@@ -20,13 +22,14 @@ interface Props {
   stores: DimStore[];
   buckets: InventoryBuckets;
   singleCharacter: boolean;
+  activeMode: boolean;
 }
 /**
  * Display inventory and character headers for all characters and the vault.
  *
  * This is the desktop view only.
  */
-export default function DesktopStores({ stores, buckets, singleCharacter }: Props) {
+export default function DesktopStores({ stores, buckets, singleCharacter, activeMode }: Props) {
   const vault = getVault(stores)!;
   const currentStore = getCurrentStore(stores)!;
   const dispatch = useDispatch();
@@ -41,16 +44,19 @@ export default function DesktopStores({ stores, buckets, singleCharacter }: Prop
   }
 
   const toggleSingleCharacter = () => dispatch(setSetting('singleCharacter', !singleCharacter));
+  const activeModeEnabled = $featureFlags.altInventoryMode && activeMode;
 
   return (
     <div
       className={clsx('inventory-content', `destiny${currentStore.destinyVersion}`, {
         singleCharacter,
+        activeModeEnabled,
       })}
       role="main"
       aria-label={t('Header.Inventory')}
     >
       <HeaderShadowDiv className="store-row store-header">
+        {activeModeEnabled && <div />}
         {headerStores.map((store) => (
           <div className={clsx('store-cell', { vault: store.isVault })} key={store.id}>
             <StoreHeading store={store} />
@@ -58,27 +64,33 @@ export default function DesktopStores({ stores, buckets, singleCharacter }: Prop
           </div>
         ))}
         {stores.length > 2 && (
-          <button
-            type="button"
-            className={styles.singleCharacterButton}
-            onClick={toggleSingleCharacter}
-            title={
-              singleCharacter
-                ? t('Settings.ExpandSingleCharacter')
-                : t('Settings.SingleCharacter') + ': ' + t('Settings.SingleCharacterExplanation')
-            }
-          >
-            <AppIcon icon={singleCharacter ? minimizeIcon : maximizeIcon} />
-          </button>
+          <div className={styles.buttons}>
+            <button
+              type="button"
+              className={styles.singleCharacterButton}
+              onClick={toggleSingleCharacter}
+              title={
+                singleCharacter
+                  ? t('Settings.ExpandSingleCharacter')
+                  : t('Settings.SingleCharacter') + ': ' + t('Settings.SingleCharacterExplanation')
+              }
+            >
+              <AppIcon icon={singleCharacter ? minimizeIcon : maximizeIcon} />
+            </button>
+            {$featureFlags.altInventoryMode && <InventoryToggle mode={activeMode} />}
+          </div>
         )}
       </HeaderShadowDiv>
-      <StoresInventory
-        stores={headerStores}
-        vault={vault}
-        currentStore={currentStore}
-        buckets={buckets}
-        singleCharacter={singleCharacter}
-      />
+      <div className={styles.desktopContainer}>
+        {activeModeEnabled && <ActiveMode />}
+        <StoresInventory
+          stores={headerStores}
+          vault={vault}
+          currentStore={currentStore}
+          buckets={buckets}
+          singleCharacter={singleCharacter}
+        />
+      </div>
     </div>
   );
 }
@@ -142,7 +154,7 @@ function StoresInventory(props: InventoryContainerProps) {
   const { buckets, stores } = props;
 
   return (
-    <>
+    <div>
       {Object.entries(buckets.byCategory).map(([category, inventoryBucket]) => (
         <CollapsibleContainer
           key={category}
@@ -152,6 +164,6 @@ function StoresInventory(props: InventoryContainerProps) {
         />
       ))}
       {stores[0].destinyVersion === 1 && <D1ReputationSection stores={stores} />}
-    </>
+    </div>
   );
 }

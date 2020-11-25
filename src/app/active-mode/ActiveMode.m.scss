@@ -1,13 +1,20 @@
 @import '../variables.scss';
 
-.activitySplit {
-  height: 4px;
-}
-
 .activityColumn {
-  margin-top: 0;
-  top: $header-height;
-  height: 100vh;
+  top: calc(var(--store-header-height) + #{$header-height});
+  top: calc(var(--store-header-height) + #{$header-height} + constant(safe-area-inset-top));
+  top: calc(var(--store-header-height) + #{$header-height} + env(safe-area-inset-top));
+  max-height: calc(100vh - var(--store-header-height) - #{$header-height});
+  flex-shrink: 0;
+  padding: 4px 12px 16px 8px;
+  position: sticky;
+  // Same as a character column
+  width: calc(6px + var(--character-column-width) + var(--column-padding));
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  box-sizing: border-box;
 
   :global(.store-cell) {
     padding: 0;
