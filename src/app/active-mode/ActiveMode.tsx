@@ -55,9 +55,11 @@ function ActiveMode(this: void, { dispatch, stores, account, currentStore, bucke
 
   return (
     <div className={styles.activityColumn}>
-      <CurrentActivity account={account} store={currentStore} buckets={buckets} />
-      <PursuitsView store={currentStore} />
-      <FarmingView store={currentStore} />
+      <div className={styles.contents}>
+        <CurrentActivity account={account} store={currentStore} buckets={buckets} />
+        <PursuitsView store={currentStore} />
+        <FarmingView store={currentStore} />
+      </div>
     </div>
   );
 }

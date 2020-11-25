@@ -5,7 +5,9 @@ interface CssExports {
   'activityInventory': string;
   'bucketLabel': string;
   'collapsed': string;
+  'contents': string;
   'inventoryCategory': string;
+  'searchOpen': string;
 }
 export const cssExports: CssExports;
 export default cssExports;
