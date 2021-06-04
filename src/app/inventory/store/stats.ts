@@ -2,11 +2,16 @@ import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import { settingsSelector } from 'app/dim-api/selectors';
 import { t } from 'app/i18next-t';
 import { D1ItemCategoryHashes } from 'app/search/d1-known-values';
-import { armorStats, CUSTOM_TOTAL_STAT_HASH, TOTAL_STAT_HASH } from 'app/search/d2-known-values';
+import {
+  armorStats,
+  CUSTOM_TOTAL_STAT_HASH,
+  statModCosts,
+  TOTAL_STAT_HASH,
+} from 'app/search/d2-known-values';
 import { compareBy } from 'app/utils/comparators';
 import { isPlugStatActive } from 'app/utils/item-utils';
 import {
-  DestinyClass,
+  // DestinyClass,
   DestinyDisplayPropertiesDefinition,
   DestinyInventoryItemDefinition,
   DestinyItemInvestmentStatDefinition,
@@ -69,6 +74,8 @@ export const statAllowList = [
   ...armorStats,
   TOTAL_STAT_HASH,
   CUSTOM_TOTAL_STAT_HASH,
+  CUSTOM_TOTAL_STAT_HASH + 1,
+  CUSTOM_TOTAL_STAT_HASH + 2,
 ];
 
 /** Stats that are measured in milliseconds. */
@@ -144,10 +151,56 @@ export function buildStats(
     // synthesize the "Total" stat for armor
     const tStat = totalStat(investmentStats);
     investmentStats.push(tStat);
-    const cStat =
-      createdItem.type !== 'ClassItem' && customStat(investmentStats, createdItem.classType);
-    if (cStat) {
-      investmentStats.push(cStat);
+
+    // synthesize the Custom Total stat
+    const cTotalStats = settingsSelector(reduxStore.getState()).customTotalStatsByClass[
+      createdItem.classType
+    ];
+    if (cTotalStats && cTotalStats.length > 0 && cTotalStats.length < 6) {
+      const oldCustomTotalWeights: CustomStatWeights = {};
+      for (const stat of cTotalStats) {
+        oldCustomTotalWeights[stat] = 1;
+      }
+
+      const cStat =
+        createdItem.type !== 'ClassItem' &&
+        makeCustomStat(
+          investmentStats,
+          oldCustomTotalWeights,
+          CUSTOM_TOTAL_STAT_HASH,
+          t('Stats.Custom'),
+          t('Stats.CustomDesc')
+        );
+      //customStat(investmentStats, createdItem.classType);
+      if (cStat) {
+        investmentStats.push(cStat);
+      }
+    }
+
+    const costStat =
+      createdItem.type !== 'ClassItem' &&
+      makeCustomStat(
+        investmentStats,
+        statModCosts,
+        CUSTOM_TOTAL_STAT_HASH + 1,
+        'cost-normalized total',
+        'idk'
+      );
+    if (costStat) {
+      investmentStats.push(costStat);
+    }
+
+    const testStat =
+      createdItem.type !== 'ClassItem' &&
+      makeCustomStat(
+        investmentStats,
+        { [StatHashes.Mobility]: 1000, [StatHashes.Discipline]: 1 },
+        CUSTOM_TOTAL_STAT_HASH + 2,
+        'mobilityonly',
+        'idk'
+      );
+    if (testStat) {
+      investmentStats.push(testStat);
     }
   }
 
@@ -467,9 +520,9 @@ function totalStat(stats: DimStat[]): DimStat {
   let total = 0;
   let baseTotal = 0;
 
-  for (const stat of stats) {
-    total += stat.value;
-    baseTotal += stat.base;
+  for (const { value, base } of stats) {
+    total += value;
+    baseTotal += base;
   }
 
   return {
@@ -489,34 +542,50 @@ function totalStat(stats: DimStat[]): DimStat {
   };
 }
 
-function customStat(stats: DimStat[], destinyClass: DestinyClass): DimStat | undefined {
-  const customStatDef = settingsSelector(reduxStore.getState()).customTotalStatsByClass[
-    destinyClass
-  ];
+interface CustomStatWeights {
+  [statHash: number]: number | undefined;
+}
 
-  if (!customStatDef || customStatDef.length === 0 || customStatDef.length === 6) {
-    return undefined;
+function makeCustomStat(
+  stats: DimStat[],
+  statWeights: CustomStatWeights,
+  customStatHash: number,
+  customStatName: string,
+  customStatDesc: string
+): DimStat {
+  let weightedTotal = 0;
+
+  for (const { base, statHash } of stats) {
+    const multiplier = statWeights[statHash] || 0;
+    weightedTotal += base * multiplier;
   }
 
-  // Custom stat is always base stat
-  let total = 0;
+  // what's averageNonZeroStatWeight for?
+  // we want the effect of all the non-zero multipliers to average out to 1x
+  // like STR x 1 / DIS x 2 / MOB x 3 --- to do this --- STR x .5 / DIS x 1 / MOB x 1.5
 
-  for (const stat of stats) {
-    if (customStatDef.includes(stat.statHash)) {
-      total += stat.base;
-    }
-  }
+  // this way there's no overall bias toward creating higher or lower total,
+  // unless the item has better values in favored stats
+  // also this way, a weighting that's just 1x's and 0x's,
+  // becomes simply "include these" and "exclude these"
+
+  // as you make weighting more and more lopsided, the highest weighted stat
+  // approaches 2x, and the others approach 0, so a custom total should top out around
+  // the single stat max (42 base) times a 2x weighting multiplier. let's just call it 100
+  const nonZeroWeights = Object.values(statWeights).filter(Boolean) as number[];
+  const averageNonZeroStatWeight = _.sum(nonZeroWeights) / nonZeroWeights.length;
+  const value = Math.round(weightedTotal / averageNonZeroStatWeight);
 
   return {
-    investmentValue: total,
-    statHash: CUSTOM_TOTAL_STAT_HASH,
+    investmentValue: value,
+    statHash: customStatHash,
     displayProperties: {
-      name: t('Stats.Custom'),
-      description: t('Stats.CustomDesc'),
+      name: customStatName,
+      description: customStatDesc,
     } as DestinyDisplayPropertiesDefinition,
-    sort: statAllowList.indexOf(CUSTOM_TOTAL_STAT_HASH),
-    value: total,
-    base: total,
+    sort: statAllowList.indexOf(customStatHash) || 1000 + customStatHash,
+    value: value,
+    base: value,
     maximumValue: 100,
     bar: false,
     smallerIsBetter: false,

@@ -92,6 +92,15 @@ export const killTrackerSocketTypeHash = 1282012138;
 export const TOTAL_STAT_HASH = -1000;
 export const CUSTOM_TOTAL_STAT_HASH = -1100;
 
+export const statModCosts = {
+  [StatHashes.Mobility]: 3,
+  [StatHashes.Resilience]: 3,
+  [StatHashes.Recovery]: 4,
+  [StatHashes.Discipline]: 3,
+  [StatHashes.Intellect]: 5,
+  [StatHashes.Strength]: 3,
+};
+
 /** hashes representing D2 PL stats */
 export const D2LightStats = [StatHashes.Attack, StatHashes.Defense];
 
