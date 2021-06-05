@@ -1,6 +1,6 @@
-import { settingsSelector } from 'app/dim-api/selectors';
+import { oldCustomTotalSelector } from 'app/dim-api/selectors';
 import BungieImage from 'app/dim-ui/BungieImage';
-import { StatHashListsKeyedByDestinyClass, StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
+import { StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
 import { ExpandableTextBlock } from 'app/dim-ui/ExpandableTextBlock';
 import { ArmorSlotSpecificModSocketIcon } from 'app/dim-ui/SpecialtyModSlotIcon';
 import { t } from 'app/i18next-t';
@@ -9,7 +9,6 @@ import { ItemFilter } from 'app/search/filter-types';
 import { filterFactorySelector } from 'app/search/search-filter';
 import { setSearchQuery } from 'app/shell/actions';
 import { AppIcon, searchIcon } from 'app/shell/icons';
-import { RootState } from 'app/store/types';
 import { wishListSelector } from 'app/wishlists/selectors';
 import { DestinyClass } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
@@ -35,9 +34,7 @@ export function ItemTriage({ item }: { item: DimItem }) {
   const [itemFactors, setItemFactors] = useState<ReturnType<typeof getSimilarItems>>();
   const allItems = useSelector(allItemsSelector);
   const wishlistItem = useSelector(wishListSelector(item));
-  const customTotalStatsByClass = useSelector<RootState, StatHashListsKeyedByDestinyClass>(
-    (state) => settingsSelector(state).customTotalStatsByClass
-  );
+  const customTotalStatsByClass = useSelector(oldCustomTotalSelector);
   // because of the ability to swipe between item popup tabs,
   // all tabs in a popup are rendered when the item popup is up.
   // this actually processes items really fast, and the item popup appearance animation probably
@@ -220,7 +217,7 @@ const notabilityThreshold = 0.8;
  */
 function getNotableStats(
   exampleItem: DimItem,
-  customTotalStatsByClass: StatHashListsKeyedByDestinyClass,
+  customTotalStatsByClass: ReturnType<typeof oldCustomTotalSelector>,
   allItems: DimItem[]
 ) {
   const customStatTotalHashes = customTotalStatsByClass[exampleItem.classType] ?? [];

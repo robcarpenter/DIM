@@ -92,7 +92,7 @@ export const killTrackerSocketTypeHash = 1282012138;
 export const TOTAL_STAT_HASH = -1000;
 export const CUSTOM_TOTAL_STAT_HASH = -1100;
 
-export const statModCosts = {
+export const statModWeights = {
   [StatHashes.Mobility]: 3,
   [StatHashes.Resilience]: 3,
   [StatHashes.Recovery]: 4,

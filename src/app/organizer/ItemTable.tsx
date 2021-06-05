@@ -2,8 +2,7 @@ import { DestinyVersion } from '@destinyitemmanager/dim-api-types';
 import { destinyVersionSelector } from 'app/accounts/selectors';
 /* eslint-disable react/jsx-key, react/prop-types */
 import { StatInfo } from 'app/compare/Compare';
-import { settingsSelector } from 'app/dim-api/selectors';
-import { StatHashListsKeyedByDestinyClass } from 'app/dim-ui/CustomStatTotal';
+import { oldCustomTotalSelector, settingsSelector } from 'app/dim-api/selectors';
 import UserGuideLink from 'app/dim-ui/UserGuideLink';
 import { t, tl } from 'app/i18next-t';
 import { setItemNote } from 'app/inventory/actions';
@@ -74,7 +73,7 @@ interface StoreProps {
   hasWishList: boolean;
   isPhonePortrait: boolean;
   enabledColumns: string[];
-  customTotalStatsByClass: StatHashListsKeyedByDestinyClass;
+  customTotalStatsByClass: ReturnType<typeof oldCustomTotalSelector>;
   loadouts: Loadout[];
   newItems: Set<string>;
   destinyVersion: DestinyVersion;

@@ -12,6 +12,10 @@ export function makeProfileKey(platformMembershipId: string, destinyVersion: Des
 }
 
 export const settingsSelector = (state: RootState) => state.dimApi.settings;
+export const oldCustomTotalSelector = (state: RootState) =>
+  state.dimApi.settings.customTotalStatsByClass;
+
+export const customStatsSelector = (state: RootState) => state.dimApi.settings.customStats;
 
 export const apiPermissionGrantedSelector = (state: RootState) =>
   state.dimApi.apiPermissionGranted === true;
