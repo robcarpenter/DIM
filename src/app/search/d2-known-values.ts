@@ -95,7 +95,7 @@ export const CUSTOM_TOTAL_STAT_HASH = -1100;
 export const statModWeights = {
   [StatHashes.Mobility]: 3,
   [StatHashes.Resilience]: 3,
-  [StatHashes.Recovery]: 4,
+  [StatHashes.Recovery]: 99,
   [StatHashes.Discipline]: 3,
   [StatHashes.Intellect]: 5,
   [StatHashes.Strength]: 3,

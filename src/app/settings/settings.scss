@@ -47,7 +47,7 @@
   }
 
   .itemSize {
-    label {
+    > label {
       flex: 0;
       white-space: nowrap;
       margin-right: 0;
@@ -62,12 +62,16 @@
       margin-left: 1em;
     }
   }
-
-  label {
-    flex: 1;
-    display: block;
-    margin-right: 1em;
+  .radioOptions,
+  .setting,
+  .horizontal {
+    > label {
+      flex: 1;
+      display: block;
+      margin-right: 1em;
+    }
   }
+
   .stylizedAnchor {
     margin-right: 0.5em;
   }

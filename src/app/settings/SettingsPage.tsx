@@ -2,6 +2,7 @@ import { DestinyAccount } from 'app/accounts/destiny-account';
 import { currentAccountSelector } from 'app/accounts/selectors';
 import { settingsSelector } from 'app/dim-api/selectors';
 import ClassIcon from 'app/dim-ui/ClassIcon';
+import { CustomStatEditor } from 'app/dim-ui/CustomStat';
 import { StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
 import PageWithMenu from 'app/dim-ui/PageWithMenu';
 import { t } from 'app/i18next-t';
@@ -11,6 +12,7 @@ import NewItemIndicator from 'app/inventory/NewItemIndicator';
 import { sortedStoresSelector, storesLoadedSelector } from 'app/inventory/selectors';
 import { DimStore } from 'app/inventory/store-types';
 import { useLoadStores } from 'app/inventory/store/hooks';
+import { statModWeights } from 'app/search/d2-known-values';
 import WishListSettings from 'app/settings/WishListSettings';
 import DimApiSettings from 'app/storage/DimApiSettings';
 import { RootState, ThunkDispatchProp } from 'app/store/types';
@@ -282,11 +284,7 @@ function SettingsPage({
           <section id="items">
             <h2>{t('Settings.Items')}</h2>
             <div className="examples">
-              <InventoryItem
-                item={(fakeWeapon as unknown) as DimItem}
-                isNew={true}
-                tag="favorite"
-              />
+              <InventoryItem item={fakeWeapon as unknown as DimItem} isNew={true} tag="favorite" />
             </div>
 
             {supportsCssVar && !isPhonePortrait && (
@@ -349,6 +347,24 @@ function SettingsPage({
                       </React.Fragment>
                     )
                 )}
+              </div>
+            </div>
+            <div className="setting">
+              <label htmlFor="">{'Custom Stat Totals'}</label>
+              <div className="fineprint">like original custom totals, but better</div>
+              <div className="newCustomStats">
+                {_.sortBy(
+                  Object.values(
+                    _.groupBy([{ label: 'PVP', class: 1, weights: statModWeights }], (s) => s.class)
+                  ),
+                  ([c]) => c.class
+                ).map((customStats) => (
+                  <div key={customStats[0].class}>
+                    {customStats.map((_c, i) => (
+                      <CustomStatEditor statIndex={i} key={Math.random()} />
+                    ))}
+                  </div>
+                ))}
               </div>
             </div>
           </section>
@@ -443,8 +459,8 @@ function SettingsPage({
           <section id="ratings">
             <h2>{t('Settings.Ratings')}</h2>
             <div className="examples sub-bucket">
-              <InventoryItem item={(fakeWeapon as unknown) as DimItem} isNew={true} />
-              <InventoryItem item={(fakeArmor as unknown) as DimItem} isNew={true} />
+              <InventoryItem item={fakeWeapon as unknown as DimItem} isNew={true} />
+              <InventoryItem item={fakeArmor as unknown as DimItem} isNew={true} />
             </div>
 
             <Checkbox

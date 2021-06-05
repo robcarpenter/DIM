@@ -4,6 +4,13 @@ import { DestinyClass } from 'bungie-api-ts/destiny2';
 
 export interface CustomStatWeights {
   [statHash: number]: number | undefined;
+  [statHash: string]: number | undefined;
+}
+
+export interface CustomStatDef {
+  label: string;
+  class: DestinyClass;
+  weights: CustomStatWeights;
 }
 
 export interface Settings extends DimApiSettings {
@@ -20,7 +27,7 @@ export interface Settings extends DimApiSettings {
   compareBaseStats: boolean;
 
   /** welcome to the future! */
-  customStats: { label: string; class: DestinyClass; weights: CustomStatWeights }[];
+  customStats: CustomStatDef[];
 }
 
 export const initialSettingsState: Settings = {
