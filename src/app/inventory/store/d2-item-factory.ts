@@ -93,14 +93,16 @@ export function processItems(
   return result;
 }
 
-const getClassTypeNameLocalized = _.memoize((type: DestinyClass, defs: D2ManifestDefinitions) => {
-  const klass = Object.values(defs.Class).find((c) => c.classType === type);
-  if (klass) {
-    return klass.displayProperties.name;
-  } else {
-    return t('Loadouts.Any');
+export const getClassTypeNameLocalized = _.memoize(
+  (type: DestinyClass, defs: D2ManifestDefinitions) => {
+    const klass = Object.values(defs.Class).find((c) => c.classType === type);
+    if (klass) {
+      return klass.displayProperties.name;
+    } else {
+      return t('Loadouts.Any');
+    }
   }
-});
+);
 
 /** Make a "fake" item from other information - used for Collectibles, etc. */
 export function makeFakeItem(

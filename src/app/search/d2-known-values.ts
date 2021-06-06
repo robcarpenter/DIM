@@ -1,3 +1,4 @@
+import { CustomStatWeights } from 'app/settings/initial-settings';
 import { DamageType, DestinyEnergyType } from 'bungie-api-ts/destiny2';
 import {
   BreakerTypeHashes,
@@ -100,6 +101,10 @@ export const statModWeights = {
   [StatHashes.Intellect]: 5,
   [StatHashes.Strength]: 3,
 };
+export const evenStatWeights = Object.keys(statModWeights).reduce<CustomStatWeights>(
+  (o, statHash) => ({ ...o, [statHash]: 1 }),
+  {}
+);
 
 /** hashes representing D2 PL stats */
 export const D2LightStats = [StatHashes.Attack, StatHashes.Defense];

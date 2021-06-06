@@ -5,10 +5,9 @@ import { D1ItemCategoryHashes } from 'app/search/d1-known-values';
 import {
   armorStats,
   CUSTOM_TOTAL_STAT_HASH,
-  statModWeights,
+  evenStatWeights,
   TOTAL_STAT_HASH,
 } from 'app/search/d2-known-values';
-import { CustomStatWeights } from 'app/settings/initial-settings';
 import { compareBy } from 'app/utils/comparators';
 import { isPlugStatActive } from 'app/utils/item-utils';
 import {
@@ -103,11 +102,6 @@ type StatDisplayLookup = { [statHash: number]: DestinyStatDisplayDefinition | un
 
 /** a dictionary to look up an item's DimStats by statHash */
 type StatLookup = { [statHash: number]: DimStat | undefined };
-
-const evenStatWeights = Object.keys(statModWeights).reduce<CustomStatWeights>(
-  (o, statHash) => ({ ...o, [statHash]: 1 }),
-  {}
-);
 
 /** Build the full list of stats for an item. If the item has no stats, this returns null. */
 export function buildStats(

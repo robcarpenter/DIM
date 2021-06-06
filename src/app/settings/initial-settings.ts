@@ -8,6 +8,7 @@ export interface CustomStatWeights {
 }
 
 export interface CustomStatDef {
+  id: string;
   label: string;
   class: DestinyClass;
   weights: CustomStatWeights;

@@ -1,0 +1,149 @@
+// .customStatControl {
+//   & > :nth-child(n + 2) {
+//     margin-top: 6px;
+//   }
+
+//   .customStatWeights,
+//   .customStatLabel {
+//     display: flex;
+//     align-items: center;
+//     & > :nth-child(n + 2) {
+//       margin-left: 4px;
+//     }
+//   }
+//   .customStatLabel {
+//     input {
+//       flex-grow: 1;
+//     }
+//   }
+//   .customStatWeights {
+//     justify-content: space-between;
+
+//     > label {
+//       display: flex;
+//       padding: 0 4px;
+//     }
+//     input {
+//       width: 35px;
+//       padding: 0;
+//     }
+//   }
+// }
+// the add new stat button
+.addNew {
+  float: right;
+}
+
+.customStatsSettings {
+  // a stye for inputs or input wrappers
+  .inputlike {
+    color: white;
+    align-items: center;
+    background: #4443;
+    border-radius: 4px;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    input {
+      margin: 0;
+      background-color: transparent;
+      border: none;
+      color: inherit;
+      text-align: center;
+      // remove default focus highlight
+      outline: none;
+    }
+    // a replacement focus highlight
+    &:focus-within {
+      border-color: #fff9;
+    }
+  }
+
+  // editor for a single stat
+  .customStatEditor {
+    .identifiyingInfo {
+      display: flex;
+      align-items: center;
+      & > :nth-child(n + 2) {
+        margin-left: 4px;
+      }
+      input {
+        flex-grow: 1;
+      }
+      img {
+        height: 1.5em;
+      }
+      // .label {
+      //   flex-grow: 1;
+      // }
+      // .classIcon {
+      //   font-size: 20px;
+      // }
+    }
+    .statWeightRow {
+      margin-top: 4px;
+      > label {
+        flex-grow: 1;
+        > input {
+          width: 32px;
+        }
+      }
+    }
+  }
+
+  // anywhere there's 6 grouped stats
+  .statWeightRow {
+    display: flex;
+    align-items: center;
+    & > :nth-child(n + 2) {
+      margin-left: 4px;
+    }
+    & > * {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    &.binaryWeights > :nth-child(n + 2) {
+      margin-left: 2px;
+    }
+
+    .nonZero {
+      filter: drop-shadow(0 0 0 #fff);
+    }
+    .zero {
+      opacity: 0.4;
+    }
+    .plus:nth-last-child(1) {
+      display: none;
+    }
+    img {
+      height: 1.5em;
+    }
+  }
+}
+
+// all info for a custom stat, without the editing controls
+.customStatView {
+  display: flex;
+  align-items: center;
+  // name, class icon, a
+  .identifiyingInfo {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    & > :nth-child(n + 2) {
+      margin-left: 4px;
+    }
+    .label {
+      flex-grow: 1;
+    }
+    .classIcon {
+      font-size: 20px;
+    }
+  }
+  .binaryWeights :nth-child(n + 2) {
+    margin-left: 4px;
+  }
+  &:nth-child(n + 0) {
+    margin-top: 4px;
+  }
+}
