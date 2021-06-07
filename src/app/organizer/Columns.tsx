@@ -16,14 +16,13 @@ import NewItemIndicator from 'app/inventory/NewItemIndicator';
 import { storesSelector } from 'app/inventory/selectors';
 import { source } from 'app/inventory/spreadsheets';
 import { getEvent, getSeason } from 'app/inventory/store/season';
-import { statAllowList } from 'app/inventory/store/stats';
+import { getStatSortOrder, isCustomStat } from 'app/inventory/store/stats';
 import { getStore } from 'app/inventory/stores-helpers';
 import TagIcon from 'app/inventory/TagIcon';
 import { ItemStatValue } from 'app/item-popup/ItemStat';
 import NotesArea from 'app/item-popup/NotesArea';
 import PlugTooltip from 'app/item-popup/PlugTooltip';
 import { Loadout } from 'app/loadout-drawer/loadout-types';
-import { CUSTOM_TOTAL_STAT_HASH } from 'app/search/d2-known-values';
 import { statHashByName } from 'app/search/search-filter-values';
 import { getColor, percent } from 'app/shell/filters';
 import {
@@ -117,7 +116,7 @@ export function getColumns(
     _.compact(
       _.map(statHashes, (statInfo, statHashStr): ColumnWithStat | undefined => {
         const statHash = parseInt(statHashStr, 10);
-        if (statHash === CUSTOM_TOTAL_STAT_HASH) {
+        if (isCustomStat(statHash)) {
           // Exclude custom total, it has its own column
           return undefined;
         }
@@ -145,7 +144,7 @@ export function getColumns(
         };
       })
     ),
-    (s) => statAllowList.indexOf(s.statHash)
+    (s) => getStatSortOrder(s.statHash)
   );
 
   const isGhost = itemsType === 'ghost';
@@ -192,7 +191,7 @@ export function getColumns(
               },
             };
           }),
-          (s) => statAllowList.indexOf(s.statHash)
+          (s) => getStatSortOrder(s.statHash)
         )
       : [];
 

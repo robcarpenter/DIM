@@ -1,8 +1,11 @@
 export { battleNetIcon } from './BattleNet';
 export { dimEngramIcon } from './Engram';
 export { dimHunterIcon } from './Hunter';
+export { dimHunterProportionalIcon } from './HunterProportional';
 export { dimPowerIcon } from './Power';
 export { dimPowerAltIcon } from './PowerAlt';
 export { stadiaIcon } from './Stadia';
 export { dimTitanIcon } from './Titan';
+export { dimTitanProportionalIcon } from './TitanProportional';
 export { dimWarlockIcon } from './Warlock';
+export { dimWarlockProportionalIcon } from './WarlockProportional';

@@ -1,7 +1,7 @@
 import BungieImage from 'app/dim-ui/BungieImage';
 import RichDestinyText from 'app/dim-ui/RichDestinyText';
 import { t } from 'app/i18next-t';
-import { statAllowList } from 'app/inventory/store/stats';
+import { getStatSortOrder } from 'app/inventory/store/stats';
 import { useD2Definitions } from 'app/manifest/selectors';
 import { thumbsUpIcon } from 'app/shell/icons';
 import AppIcon from 'app/shell/icons/AppIcon';
@@ -35,7 +35,7 @@ export default function PlugTooltip({
     t('WishListRoll.BestRatedTip', { count: wishlistRoll.wishListPerks.size });
 
   const visibleStats = plug.stats
-    ? _.sortBy(Object.keys(plug.stats), (h) => statAllowList.indexOf(parseInt(h, 10))).filter(
+    ? _.sortBy(Object.keys(plug.stats), (h) => getStatSortOrder(parseInt(h, 10))).filter(
         (statHash) =>
           isPlugStatActive(
             item,

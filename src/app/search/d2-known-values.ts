@@ -91,7 +91,13 @@ export const killTrackerSocketTypeHash = 1282012138;
 
 /** the stat hash for DIM's artificial armor stat, "Total" */
 export const TOTAL_STAT_HASH = -1000;
-export const CUSTOM_TOTAL_STAT_HASH = -1100;
+
+/**
+ * custom stat hashes can start at 1100 and go lower.
+ * gonna decrement this by 1 for each stat,
+ * while generating them on armor from the user's settings
+ */
+export const CUSTOM_STAT_BASE_HASH = -1100;
 
 export const statModWeights = {
   [StatHashes.Mobility]: 3,

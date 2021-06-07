@@ -1,7 +1,6 @@
 import { DamageType } from 'bungie-api-ts/destiny2';
 import { D1LightStats } from './d1-known-values';
 import {
-  CUSTOM_TOTAL_STAT_HASH,
   D2ArmorStatHashByName,
   D2LightStats,
   D2WeaponStatHashByName,
@@ -36,7 +35,6 @@ export const damageTypeNames = Object.values(damageNamesByEnum).filter(
 export const dimArmorStatHashByName = {
   ...D2ArmorStatHashByName,
   total: TOTAL_STAT_HASH,
-  custom: CUSTOM_TOTAL_STAT_HASH,
 };
 
 /** stats names used to create armor-specific filters, real ones plus an "any" keyword */

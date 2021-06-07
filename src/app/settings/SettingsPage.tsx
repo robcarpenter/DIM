@@ -1,15 +1,12 @@
 import { DestinyAccount } from 'app/accounts/destiny-account';
 import { currentAccountSelector } from 'app/accounts/selectors';
 import { settingsSelector } from 'app/dim-api/selectors';
-import ClassIcon from 'app/dim-ui/ClassIcon';
-import { StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
 import PageWithMenu from 'app/dim-ui/PageWithMenu';
 import { t } from 'app/i18next-t';
 import { clearAllNewItems } from 'app/inventory/actions';
 import { itemTagList } from 'app/inventory/dim-item-info';
 import NewItemIndicator from 'app/inventory/NewItemIndicator';
-import { sortedStoresSelector, storesLoadedSelector } from 'app/inventory/selectors';
-import { DimStore } from 'app/inventory/store-types';
+import { storesLoadedSelector } from 'app/inventory/selectors';
 import { useLoadStores } from 'app/inventory/store/hooks';
 import WishListSettings from 'app/settings/WishListSettings';
 import DimApiSettings from 'app/storage/DimApiSettings';
@@ -41,14 +38,12 @@ interface StoreProps {
   settings: Settings;
   isPhonePortrait: boolean;
   storesLoaded: boolean;
-  stores: DimStore[];
 }
 
 function mapStateToProps(state: RootState): StoreProps {
   return {
     settings: settingsSelector(state),
     storesLoaded: storesLoadedSelector(state),
-    stores: sortedStoresSelector(state),
     isPhonePortrait: state.shell.isPhonePortrait,
     currentAccount: currentAccountSelector(state),
   };
@@ -124,7 +119,6 @@ function SettingsPage({
   settings,
   isPhonePortrait,
   storesLoaded,
-  stores,
   currentAccount,
   dispatch,
 }: Props) {
@@ -240,13 +234,6 @@ function SettingsPage({
     { id: 'spreadsheets', title: t('Settings.Data') },
   ]);
 
-  const uniqChars =
-    stores &&
-    _.uniqBy(
-      stores.filter((s) => !s.isVault),
-      (s) => s.classType
-    );
-
   return (
     <PageWithMenu>
       <PageWithMenu.Menu>
@@ -330,23 +317,6 @@ function SettingsPage({
 
               <SortOrderEditor order={itemSortCustom} onSortOrderChanged={itemSortOrderChanged} />
               <div className="fineprint">{t('Settings.DontForgetDupes')}</div>
-            </div>
-            <div className="setting">
-              <label htmlFor="">{t('Organizer.Columns.CustomTotal')}</label>
-              <div className="fineprint">{t('Settings.CustomStatDesc')}</div>
-              <div className="customStats">
-                {uniqChars.map(
-                  (store) =>
-                    !store.isVault && (
-                      <React.Fragment key={store.classType}>
-                        <div>
-                          <ClassIcon classType={store.classType} /> {store.className}:{' '}
-                        </div>
-                        <StatTotalToggle forClass={store.classType} />
-                      </React.Fragment>
-                    )
-                )}
-              </div>
             </div>
             <CustomStatsSettings />
           </section>

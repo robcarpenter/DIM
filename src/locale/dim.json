@@ -340,7 +340,6 @@
     "PostmasterAlmostFull": "Almost full! ({{number}}/{{postmasterSize}})",
     "PostmasterFull": "Full! ({{number}}/{{postmasterSize}})",
     "PreviewVendor": "Preview {{type}} contents",
-    "ShouldNotBeInVault": "This item may be at risk if it is left in the Vault. Please transfer it to a character.",
     "StackFull": "You already have a full stack of {{name}}",
     "StoreName": "{{genderRace}} {{className}}"
   },
@@ -721,7 +720,12 @@
     "ColumnSize": "{{num}} items",
     "ColumnSizeAuto": "Auto",
     "CsvImport": "Import CSV",
-    "CustomStatDesc": "Choose armor stats to make a custom total stat that will show on the item popup, Organizer, and Compare. Search with stat:custom:>=30.",
+    "CustomDelete": "Delete this Custom Stat?",
+    "CustomErrorLabel": "Stat names must contain word characters and be unique for their class.",
+    "CustomErrorValues": "Stat weights must be valid numbers. At least 2 weights must be above zero.",
+    "CustomName": "Choose a Custom Stat name",
+    "CustomStatDesc": "Choose armor stats to make a custom total stat.\nA higher weight increases a stat's contribution toward the total.\nThis custom stat will appear on the Item Popup, Organizer, and Compare.",
+    "CustomStatTitle": "Custom Stat",
     "Data": "Spreadsheets",
     "DefaultItemSizeNote": "An item size of 50px will look the sharpest, without blurring the item picture or text.",
     "DontForgetDupes": "Don't forget you can search is:dupe to quickly find duplicate items, and you can use the comparison tool to evaluate related items.",
@@ -767,8 +771,7 @@
   },
   "Stats": {
     "BarricadeCooldown": "Barricade Cooldown",
-    "Custom": "Custom Total",
-    "CustomDesc": "Custom total of selected base stats, ignoring mods or masterworks. Visit Settings to configure which stats are included.",
+    "CustomDesc": "",
     "DarkGrenadeCooldown": "Dark Grenade Cooldown",
     "DarkMeleeCooldown": "Dark Melee Cooldown",
     "DarkSuperCooldown": "Dark Super Cooldown",
@@ -941,6 +944,7 @@
     "VoltronDescription": "voltron is an auto-updated collection of PvE and PvP wish list rolls from Mercules904 and pandapaxxy. We ship with this by default.",
     "WishListNotes": "Wish List Notes: {{notes}}"
   },
+  "dont do that": "",
   "no-space": "",
   "wrong-level": ""
 }

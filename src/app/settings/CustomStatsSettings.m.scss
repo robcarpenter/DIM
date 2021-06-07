@@ -1,37 +1,10 @@
-// .customStatControl {
-//   & > :nth-child(n + 2) {
-//     margin-top: 6px;
-//   }
-
-//   .customStatWeights,
-//   .customStatLabel {
-//     display: flex;
-//     align-items: center;
-//     & > :nth-child(n + 2) {
-//       margin-left: 4px;
-//     }
-//   }
-//   .customStatLabel {
-//     input {
-//       flex-grow: 1;
-//     }
-//   }
-//   .customStatWeights {
-//     justify-content: space-between;
-
-//     > label {
-//       display: flex;
-//       padding: 0 4px;
-//     }
-//     input {
-//       width: 35px;
-//       padding: 0;
-//     }
-//   }
-// }
 // the add new stat button
 .addNew {
   float: right;
+}
+
+.customDesc {
+  white-space: pre-line;
 }
 
 .customStatsSettings {
@@ -60,7 +33,23 @@
 
   // editor for a single stat
   .customStatEditor {
-    .identifiyingInfo {
+    border: 1px solid;
+    margin: 8px 0;
+    padding: 6px;
+    animation-name: pulseBorder;
+    animation-duration: 2s;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+
+    display: flex;
+    flex-direction: column;
+    & > :nth-child(n + 2) {
+      margin-top: 4px;
+    }
+    .editableStatsRow {
+      justify-content: space-evenly;
+    }
+    .identifyingInfo {
       display: flex;
       align-items: center;
       & > :nth-child(n + 2) {
@@ -72,51 +61,15 @@
       img {
         height: 1.5em;
       }
-      // .label {
-      //   flex-grow: 1;
-      // }
-      // .classIcon {
-      //   font-size: 20px;
-      // }
-    }
-    .statWeightRow {
-      margin-top: 4px;
-      > label {
+      .filter {
         flex-grow: 1;
-        > input {
-          width: 32px;
-        }
       }
-    }
-  }
-
-  // anywhere there's 6 grouped stats
-  .statWeightRow {
-    display: flex;
-    align-items: center;
-    & > :nth-child(n + 2) {
-      margin-left: 4px;
-    }
-    & > * {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    &.binaryWeights > :nth-child(n + 2) {
-      margin-left: 2px;
-    }
-
-    .nonZero {
-      filter: drop-shadow(0 0 0 #fff);
+      code {
+        background-color: #000;
+      }
     }
     .zero {
       opacity: 0.4;
-    }
-    .plus:nth-last-child(1) {
-      display: none;
-    }
-    img {
-      height: 1.5em;
     }
   }
 }
@@ -125,25 +78,34 @@
 .customStatView {
   display: flex;
   align-items: center;
+  margin-top: 4px;
   // name, class icon, a
-  .identifiyingInfo {
+  .identifyingInfo {
     flex-grow: 1;
     display: flex;
     align-items: center;
     & > :nth-child(n + 2) {
-      margin-left: 4px;
+      margin: 0 4px;
     }
     .label {
       flex-grow: 1;
     }
     .classIcon {
       font-size: 20px;
+      width: 1.4em;
+      text-align: center;
     }
   }
-  .binaryWeights :nth-child(n + 2) {
-    margin-left: 4px;
+}
+
+@keyframes pulseBorder {
+  0% {
+    border-color: #fff8;
   }
-  &:nth-child(n + 0) {
-    margin-top: 4px;
+  50% {
+    border-color: #fff4;
+  }
+  100% {
+    border-color: #fff8;
   }
 }

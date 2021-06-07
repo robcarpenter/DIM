@@ -2,17 +2,17 @@
 // Please do not change this file!
 interface CssExports {
   'addNew': string;
-  'binaryWeights': string;
   'classIcon': string;
+  'customDesc': string;
   'customStatEditor': string;
   'customStatView': string;
   'customStatsSettings': string;
-  'identifiyingInfo': string;
+  'editableStatsRow': string;
+  'filter': string;
+  'identifyingInfo': string;
   'inputlike': string;
   'label': string;
-  'nonZero': string;
-  'plus': string;
-  'statWeightRow': string;
+  'pulseBorder': string;
   'zero': string;
 }
 export const cssExports: CssExports;

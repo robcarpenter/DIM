@@ -4,7 +4,7 @@ import { t } from 'app/i18next-t';
 import { D1ItemCategoryHashes } from 'app/search/d1-known-values';
 import {
   armorStats,
-  CUSTOM_TOTAL_STAT_HASH,
+  CUSTOM_STAT_BASE_HASH,
   evenStatWeights,
   TOTAL_STAT_HASH,
 } from 'app/search/d2-known-values';
@@ -48,7 +48,7 @@ import { makeCustomStat } from './stats-custom';
 /**
  * Which stats to display, and in which order.
  */
-export const statAllowList = [
+const statAllowList = [
   StatHashes.RoundsPerMinute,
   StatHashes.ChargeTime,
   StatHashes.DrawTime,
@@ -73,10 +73,20 @@ export const statAllowList = [
   StatHashes.AmmoCapacity,
   ...armorStats,
   TOTAL_STAT_HASH,
-  CUSTOM_TOTAL_STAT_HASH,
-  CUSTOM_TOTAL_STAT_HASH + 1,
-  CUSTOM_TOTAL_STAT_HASH + 2,
 ];
+
+export function getStatSortOrder(statHash: number) {
+  const order = statAllowList.indexOf(statHash);
+  return order === -1 ? 999999 + Math.abs(statHash) : order;
+}
+
+export function isAllowedStat(statHash: number) {
+  return statAllowList.includes(statHash) || statHash < 0;
+}
+
+export function isCustomStat(statHash: number) {
+  return statHash <= CUSTOM_STAT_BASE_HASH;
+}
 
 /** Stats that are measured in milliseconds. */
 export const statsMs = [StatHashes.DrawTime, StatHashes.ChargeTime];
@@ -161,21 +171,24 @@ export function buildStats(
 
     // synthesize custom stats for meaningfully stat-bearing items
     if (createdItem.type !== 'ClassItem') {
-      const customStats = customStatsSelector(reduxStore.getState()).filter(
-        (s) => s.class === createdItem.classType || s.class === DestinyClass.Unknown
-      );
+      const customStats = customStatsSelector(reduxStore.getState());
 
       for (let i = 0; i < customStats.length; i++) {
         const customStat = customStats[i];
-        const cStat = makeCustomStat(
-          investmentStats,
-          customStat.weights,
-          CUSTOM_TOTAL_STAT_HASH + i,
-          customStat.label,
-          t('Stats.CustomDesc')
-        );
-        if (cStat) {
-          investmentStats.push(cStat);
+        if (
+          customStat.class === createdItem.classType ||
+          customStat.class === DestinyClass.Unknown
+        ) {
+          const cStat = makeCustomStat(
+            investmentStats,
+            customStat.weights,
+            CUSTOM_STAT_BASE_HASH - i,
+            customStat.label,
+            t('Stats.CustomDesc')
+          );
+          if (cStat) {
+            investmentStats.push(cStat);
+          }
         }
       }
     }
@@ -204,8 +217,8 @@ function shouldShowStat(
   const includeHiddenStats = !itemDef.itemCategoryHashes?.includes(D1ItemCategoryHashes.sword);
 
   return Boolean(
-    // Must be on the AllowList
-    statAllowList.includes(statHash) &&
+    // Must be a stat we want to display
+    isAllowedStat(statHash) &&
       // Must be on the list of interpolated stats, or included in the hardcoded hidden stats list
       (statDisplaysByStatHash[statHash] ||
         (includeHiddenStats && hiddenStatsAllowList.includes(statHash)))
@@ -277,7 +290,7 @@ function buildStat(
     investmentValue: itemStat.value || 0,
     statHash,
     displayProperties: statDef.displayProperties,
-    sort: statAllowList.indexOf(statHash),
+    sort: getStatSortOrder(statHash),
     value,
     base: value,
     maximumValue,

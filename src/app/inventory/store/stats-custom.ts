@@ -2,7 +2,7 @@ import { CustomStatWeights } from 'app/settings/initial-settings';
 import { DestinyDisplayPropertiesDefinition } from 'bungie-api-ts/destiny2';
 import _ from 'lodash';
 import { DimStat } from '../item-types';
-import { statAllowList } from './stats';
+import { getStatSortOrder } from './stats';
 
 export function makeCustomStat(
   stats: DimStat[],
@@ -51,7 +51,7 @@ export function makeCustomStat(
       name: customStatName,
       description: customStatDesc,
     } as DestinyDisplayPropertiesDefinition,
-    sort: statAllowList.indexOf(customStatHash) || 1000 + customStatHash,
+    sort: getStatSortOrder(customStatHash),
     value: weightedTotal,
     base: weightedBaseTotal,
     maximumValue: 1000,

@@ -1,11 +1,11 @@
 import BungieImage from 'app/dim-ui/BungieImage';
-import { StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
+import { CustomStatWeightsFromHash } from 'app/dim-ui/CustomStatWeights';
 import ExternalLink from 'app/dim-ui/ExternalLink';
 import PressTip from 'app/dim-ui/PressTip';
 import { t } from 'app/i18next-t';
 import { D1Item, D1Stat, DimItem, DimSocket, DimStat } from 'app/inventory/item-types';
-import { statsMs } from 'app/inventory/store/stats';
-import { armorStats, CUSTOM_TOTAL_STAT_HASH, TOTAL_STAT_HASH } from 'app/search/d2-known-values';
+import { isCustomStat, statsMs } from 'app/inventory/store/stats';
+import { armorStats, TOTAL_STAT_HASH } from 'app/search/d2-known-values';
 import { getColor, percent } from 'app/shell/filters';
 import { AppIcon, helpIcon } from 'app/shell/icons';
 import { isPlugStatActive } from 'app/utils/item-utils';
@@ -15,6 +15,7 @@ import { ItemCategoryHashes, StatHashes } from 'data/d2/generated-enums';
 import _ from 'lodash';
 import React from 'react';
 import { getSocketsWithStyle, socketContainsIntrinsicPlug } from '../utils/socket-utils';
+// eslint-disable-next-line css-modules/no-unused-class
 import styles from './ItemStat.m.scss';
 import RecoilStat from './RecoilStat';
 
@@ -103,7 +104,7 @@ export default function ItemStat({ stat, item }: { stat: DimStat; item?: DimItem
 
       {stat.displayProperties.hasIcon && (
         <div className={styles.icon}>
-          <BungieImage src={stat.displayProperties.icon} alt="" />
+          <BungieImage className="stat-icon" src={stat.displayProperties.icon} alt="" />
         </div>
       )}
 
@@ -127,11 +128,10 @@ export default function ItemStat({ stat, item }: { stat: DimStat; item?: DimItem
           <StatTotal totalDetails={totalDetails} optionalClasses={optionalClasses} stat={stat} />
         )}
 
-      {item && stat.statHash === CUSTOM_TOTAL_STAT_HASH && (
-        <StatTotalToggle
-          forClass={item.classType}
-          readOnly={true}
+      {item && isCustomStat(stat.statHash) && (
+        <CustomStatWeightsFromHash
           className={styles.smallStatToggle}
+          customStatHash={stat.statHash}
         />
       )}
     </>
