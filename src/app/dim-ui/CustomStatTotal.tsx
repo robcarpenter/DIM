@@ -2,11 +2,11 @@ import { oldCustomTotalSelector } from 'app/dim-api/selectors';
 import BungieImage from 'app/dim-ui/BungieImage';
 import { useD2Definitions } from 'app/manifest/selectors';
 import { armorStats } from 'app/search/d2-known-values';
+import { useSetSetting } from 'app/settings/hooks';
 import { DestinyClass, DestinyStatDefinition } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
 import React, { ReactElement, ReactNode } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { setSetting } from '../settings/actions';
+import { useSelector } from 'react-redux';
 import styles from './CustomStatTotal.m.scss';
 
 export function StatTotalToggle({
@@ -20,17 +20,15 @@ export function StatTotalToggle({
 }) {
   const defs = useD2Definitions();
   const customTotalStatsByClass = useSelector(oldCustomTotalSelector);
-  const dispatch = useDispatch();
+  const setSetting = useSetSetting();
 
   const toggleStat = (statHash: number) => {
-    dispatch(
-      setSetting('customTotalStatsByClass', {
-        ...customTotalStatsByClass,
-        ...{
-          [forClass]: toggleArrayElement(statHash, customTotalStatsByClass[forClass] ?? []),
-        },
-      })
-    );
+    setSetting('customTotalStatsByClass', {
+      ...customTotalStatsByClass,
+      ...{
+        [forClass]: toggleArrayElement(statHash, customTotalStatsByClass[forClass] ?? []),
+      },
+    });
   };
 
   const activeStats = customTotalStatsByClass[forClass]?.length
