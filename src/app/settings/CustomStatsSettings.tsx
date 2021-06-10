@@ -12,12 +12,12 @@ import { chainComparator, compareBy } from 'app/utils/comparators';
 import { DestinyClass } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 // eslint-disable-next-line css-modules/no-unused-class
 import weightsStyles from '../dim-ui/CustomStatWeights.m.scss';
-import { setSetting } from './actions';
 import styles from './CustomStatsSettings.m.scss';
+import { useSetSetting } from './hooks';
 import { CustomStatDef, CustomStatWeights } from './initial-settings';
 
 const classes = [
@@ -203,7 +203,7 @@ const customStatSort = chainComparator(
 );
 
 function useSaveStat() {
-  const dispatch = useDispatch();
+  const setSetting = useSetSetting();
   const customStatList = useSelector(customStatsSelector);
   return (newStat: CustomStatDef) => {
     const weightValues = Object.values(newStat.weights);
@@ -219,6 +219,7 @@ function useSaveStat() {
       warnInvalidCustomStat(t('Settings.CustomErrorValues'));
       return false;
     }
+
     if (
       // if there's not enough label
       !proposedSimpleLabel ||
@@ -234,11 +235,9 @@ function useSaveStat() {
       warnInvalidCustomStat(t('Settings.CustomErrorLabel'));
       return false;
     } else {
-      dispatch(
-        setSetting(
-          'customStats',
-          [...allOtherStats.filter((s) => s.id), newStat].sort(customStatSort)
-        )
+      setSetting(
+        'customStats',
+        [...allOtherStats.filter((s) => s.id), newStat].sort(customStatSort)
       );
       return true;
     }
@@ -246,15 +245,13 @@ function useSaveStat() {
 }
 
 function useRemoveStat() {
-  const dispatch = useDispatch();
+  const setSetting = useSetSetting();
   const customStatList = useSelector(customStatsSelector);
   return (stat: CustomStatDef) => {
     if (stat.label === '' || confirm(t('Settings.CustomDelete'))) {
-      dispatch(
-        setSetting(
-          'customStats',
-          customStatList.filter((s) => s.id !== stat.id).sort(customStatSort)
-        )
+      setSetting(
+        'customStats',
+        customStatList.filter((s) => s.id !== stat.id).sort(customStatSort)
       );
       return true;
     }

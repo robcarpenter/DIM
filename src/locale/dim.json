@@ -722,7 +722,7 @@
     "CsvImport": "Import CSV",
     "CustomDelete": "Delete this Custom Stat?",
     "CustomErrorLabel": "Stat names must contain word characters and be unique for their class.",
-    "CustomErrorValues": "Stat weights must be valid numbers. At least 2 weights must be above zero.",
+    "CustomErrorValues": "Stat weights must be positive numbers.\nAt least 2 stat weights must be above zero.",
     "CustomName": "Choose a Custom Stat name",
     "CustomStatDesc": "Choose armor stats to make a custom total stat.\nA higher weight increases a stat's contribution toward the total.\nThis custom stat will appear on the Item Popup, Organizer, and Compare.",
     "CustomStatTitle": "Custom Stat",
