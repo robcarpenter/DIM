@@ -1,12 +1,15 @@
-import { knownModPlugCategoryHashes, raidPlugCategoryHashes } from 'app/loadout/known-values';
+import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
+import { knownModPlugCategoryHashes } from 'app/loadout/known-values';
 import { modsWithConditionalStats } from 'app/search/d2-known-values';
 import { chargedWithLightPlugCategoryHashes } from 'app/search/specialty-modslots';
+import { UpgradeSpendTier } from 'app/settings/initial-settings';
 import {
   DestinyClass,
   DestinyEnergyType,
   DestinyItemInvestmentStatDefinition,
 } from 'bungie-api-ts/destiny2';
 import { StatHashes } from 'data/d2/generated-enums';
+import raidModPlugCategoryHashes from 'data/d2/raid-mod-plug-category-hashes.json';
 import _ from 'lodash';
 import { DimItem, PluggableInventoryItemDefinition } from '../../inventory/item-types';
 import {
@@ -15,6 +18,7 @@ import {
 } from '../../utils/item-utils';
 import { ProcessArmorSet, ProcessItem, ProcessMod } from '../process-worker/types';
 import { ArmorSet, statHashToType, StatTypes } from '../types';
+import { canSwapEnergyFromUpgradeSpendTier, upgradeSpendTierToMaxEnergy } from '../utils';
 
 export function mapArmor2ModToProcessMod(mod: PluggableInventoryItemDefinition): ProcessMod {
   const processMod: ProcessMod = {
@@ -28,7 +32,7 @@ export function mapArmor2ModToProcessMod(mod: PluggableInventoryItemDefinition):
   };
 
   if (
-    raidPlugCategoryHashes.includes(processMod.plugCategoryHash) ||
+    raidModPlugCategoryHashes.includes(processMod.plugCategoryHash) ||
     !knownModPlugCategoryHashes.includes(processMod.plugCategoryHash)
   ) {
     processMod.tag = getModTypeTagByPlugCategoryHash(mod.plug.plugCategoryHash);
@@ -80,7 +84,7 @@ function isModStatActive(
  */
 export function getTotalModStatChanges(
   lockedMods: PluggableInventoryItemDefinition[],
-  characterClass?: DestinyClass
+  characterClass: DestinyClass | undefined
 ) {
   const totals: { [stat in StatTypes]: number } = {
     Mobility: 0,
@@ -109,7 +113,9 @@ export function getTotalModStatChanges(
 }
 
 export function mapDimItemToProcessItem(
+  defs: D2ManifestDefinitions,
   dimItem: DimItem,
+  upgradeSpendTier: UpgradeSpendTier,
   modsForSlot?: PluggableInventoryItemDefinition[]
 ): ProcessItem {
   const { bucket, id, hash, type, name, equippingLabel, basePower, stats, energy } = dimItem;
@@ -127,6 +133,15 @@ export function mapDimItemToProcessItem(
     ? _.sumBy(modsForSlot, (mod) => mod.plug.energyCost?.energyCost || 0)
     : 0;
 
+  // If we have slot specifc mods an energy type has effectively been chosen.
+  let energyType = modsForSlot?.find(
+    (mod) => mod.plug.energyCost?.energyType !== DestinyEnergyType.Any
+  )?.plug.energyCost?.energyType;
+
+  if (!energyType && canSwapEnergyFromUpgradeSpendTier(defs, upgradeSpendTier, dimItem)) {
+    energyType = DestinyEnergyType.Any;
+  }
+
   return {
     bucketHash: bucket.hash,
     id,
@@ -138,8 +153,8 @@ export function mapDimItemToProcessItem(
     baseStats: baseStatMap,
     energy: energy
       ? {
-          type: energy.energyType,
-          capacity: energy.energyCapacity,
+          type: energyType ?? energy.energyType,
+          capacity: upgradeSpendTierToMaxEnergy(defs, upgradeSpendTier, dimItem),
           val: modsCost,
         }
       : undefined,

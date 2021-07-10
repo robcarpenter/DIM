@@ -1,5 +1,44 @@
 ## Next
 
+* Solstice of Heroes pursuit list now shows the full description of the objectives, not just the checkboxes.
+
+## 6.72.1 <span class="changelog-date">(2021-07-06)</span>
+
+* Solstice of Heroes is back and so is the **Solstice of Heroes** section of the **Progress** tab. Check it out and view your progress toward upgrading armor.
+
+## 6.72.0 <span class="changelog-date">(2021-07-04)</span>
+
+* Fixed issue with locked mod stats not being applied to a compared loadouts in the Optimizer.
+
+## 6.71.0 <span class="changelog-date">(2021-06-27)</span>
+
+* Armor 1 exotics are visible in the exotic picker, albeit unselectable.
+* Default to similar loadout as comparison base in Loadout Optimizer.
+* Armor upgrades in the Optimizer have full descriptions of their functionality. Added Ascendant Shard 'Not Masterworked' and 'Lock Energy Type' options.
+* In the Exotic Selector, the currently selected exotic is now highlighted.
+
+## 6.70.0 <span class="changelog-date">(2021-06-23)</span>
+
+* Fixed an issue where unwanted energy swaps were happening in the Optimizer.
+* Fixed an issue where mod energy types could be mismatched in the Optimizer.
+
+## 6.69.2 <span class="changelog-date">(2021-06-22)</span>
+
+* Fixed an issue with general mods returning no results in the Optimizer.
+
+## 6.69.1 <span class="changelog-date">(2021-06-21)</span>
+
+* Fix an issue crashing DIM on older versions of Safari.
+
+## 6.69.0 <span class="changelog-date">(2021-06-20)</span>
+* Added "Recency" Column & Sorting to Loadout Organizer, this allows viewing gear sorted by acquisition date.
+* Added ctrl-click to toggle item selection in Organizer.
+* Fix over-eager prompt to backup data when signing in.
+* Viewing artifact details no longer always shows The Gate Lord's Eye.
+* Scrolling to an item tile is now more accurate.
+* Vault of Glass milestone is now more clearly named.
+* Loadout Optimizer support for Vault of Glass mods.
+
 ## 6.68.0 <span class="changelog-date">(2021-06-06)</span>
 
 * Some support for Vault of Glass mods in filters. Expect Loadout Optimizer fixes next week.

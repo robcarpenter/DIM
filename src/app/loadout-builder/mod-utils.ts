@@ -1,6 +1,9 @@
-import { knownModPlugCategoryHashes, raidPlugCategoryHashes } from 'app/loadout/known-values';
+import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
+import { knownModPlugCategoryHashes } from 'app/loadout/known-values';
 import { armor2PlugCategoryHashesByName } from 'app/search/d2-known-values';
+import { UpgradeSpendTier } from 'app/settings/initial-settings';
 import { DestinyEnergyType } from 'bungie-api-ts/destiny2';
+import raidModPlugCategoryHashes from 'data/d2/raid-mod-plug-category-hashes.json';
 import _ from 'lodash';
 import { DimItem, PluggableInventoryItemDefinition } from '../inventory/item-types';
 import {
@@ -10,17 +13,24 @@ import {
 import { ProcessItem } from './process-worker/types';
 import { mapArmor2ModToProcessMod, mapDimItemToProcessItem } from './process/mappers';
 import { bucketsToCategories, LockableBucketHashes } from './types';
+import { canSwapEnergyFromUpgradeSpendTier } from './utils';
 
 /**
  * Checks that:
  *   1. The armour piece is Armour 2.0
  *   2. The mod matches the Armour energy OR the mod has the any Energy type
  */
-export const doEnergiesMatch = (mod: PluggableInventoryItemDefinition, item: DimItem) =>
+export const doEnergiesMatch = (
+  defs: D2ManifestDefinitions,
+  mod: PluggableInventoryItemDefinition,
+  item: DimItem,
+  upgradeSpendTier: UpgradeSpendTier
+) =>
   item.energy &&
   (!mod.plug.energyCost ||
     mod.plug.energyCost.energyType === DestinyEnergyType.Any ||
-    mod.plug.energyCost.energyType === item.energy?.energyType);
+    mod.plug.energyCost.energyType === item.energy.energyType ||
+    canSwapEnergyFromUpgradeSpendTier(defs, upgradeSpendTier, item));
 
 /**
  * If the energies match, this will assign the mods to the item in assignments.
@@ -28,11 +38,13 @@ export const doEnergiesMatch = (mod: PluggableInventoryItemDefinition, item: Dim
  * assignments is mutated in this function as it tracks assigned mods for a particular armour set
  */
 function assignModsForSlot(
+  defs: D2ManifestDefinitions,
   item: DimItem,
   assignments: Record<string, number[]>,
+  upgradeSpendTier: UpgradeSpendTier,
   mods?: PluggableInventoryItemDefinition[]
 ): void {
-  if (mods?.length && mods.every((mod) => doEnergiesMatch(mod, item))) {
+  if (mods?.length && mods.every((mod) => doEnergiesMatch(defs, mod, item, upgradeSpendTier))) {
     assignments[item.id] = [...assignments[item.id], ...mods.map((mod) => mod.hash)];
   }
 }
@@ -55,7 +67,7 @@ function assignSlotIndependantMods(
     const { plugCategoryHash } = mod.plug;
     if (plugCategoryHash === armor2PlugCategoryHashesByName.general) {
       generalMods.push(mod);
-    } else if (raidPlugCategoryHashes.includes(plugCategoryHash)) {
+    } else if (raidModPlugCategoryHashes.includes(plugCategoryHash)) {
       raidMods.push(mod);
     } else if (!knownModPlugCategoryHashes.includes(plugCategoryHash)) {
       otherMods.push(mod);
@@ -85,8 +97,10 @@ function assignSlotIndependantMods(
 }
 
 export function assignModsToArmorSet(
+  defs: D2ManifestDefinitions | undefined,
   setToMatch: readonly DimItem[],
-  lockedMods: PluggableInventoryItemDefinition[]
+  lockedMods: PluggableInventoryItemDefinition[],
+  upgradeSpendTier: UpgradeSpendTier
 ): [Record<string, PluggableInventoryItemDefinition[]>, PluggableInventoryItemDefinition[]] {
   const assignments: Record<string, number[]> = {};
 
@@ -100,10 +114,12 @@ export function assignModsToArmorSet(
   for (const hash of LockableBucketHashes) {
     const item = setToMatch.find((i) => i.bucket.hash === hash);
 
-    if (item) {
+    if (item && defs) {
       const lockedModsByPlugCategoryHash = lockedModMap[bucketsToCategories[hash]];
-      assignModsForSlot(item, assignments, lockedModsByPlugCategoryHash);
-      processItems.push(mapDimItemToProcessItem(item, lockedModsByPlugCategoryHash));
+      assignModsForSlot(defs, item, assignments, upgradeSpendTier, lockedModsByPlugCategoryHash);
+      processItems.push(
+        mapDimItemToProcessItem(defs, item, upgradeSpendTier, lockedModsByPlugCategoryHash)
+      );
     }
   }
 

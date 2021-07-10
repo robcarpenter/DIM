@@ -2,6 +2,8 @@ import { LoadoutParameters } from '@destinyitemmanager/dim-api-types';
 import { PluggableInventoryItemDefinition } from 'app/inventory/item-types';
 import { Loadout } from 'app/loadout-drawer/loadout-types';
 import { editLoadout } from 'app/loadout-drawer/LoadoutDrawer';
+import { useD2Definitions } from 'app/manifest/selectors';
+import { UpgradeSpendTier } from 'app/settings/initial-settings';
 import { errorLog } from 'app/utils/log';
 import React, { Dispatch } from 'react';
 import { DimStore } from '../../inventory/store-types';
@@ -27,6 +29,7 @@ interface Props {
   lbDispatch: Dispatch<LoadoutBuilderAction>;
   params: LoadoutParameters;
   halfTierMods: PluggableInventoryItemDefinition[];
+  upgradeSpendTier: UpgradeSpendTier;
 }
 
 /**
@@ -46,7 +49,9 @@ function GeneratedSet({
   lbDispatch,
   params,
   halfTierMods,
+  upgradeSpendTier,
 }: Props) {
+  const defs = useD2Definitions();
   // Set the loadout property to show/hide the loadout menu
   const setCreateLoadout = (loadout: Loadout) => {
     loadout.parameters = params;
@@ -61,8 +66,10 @@ function GeneratedSet({
   }
 
   const [assignedMods] = assignModsToArmorSet(
+    defs,
     set.armor.map((items) => items[0]),
-    lockedMods
+    lockedMods,
+    upgradeSpendTier
   );
 
   const canCompareLoadouts =

@@ -8,9 +8,10 @@ import { isPluggableItem } from 'app/inventory/store/sockets';
 import { Loadout } from 'app/loadout-drawer/loadout-types';
 import { loadoutFromEquipped } from 'app/loadout-drawer/loadout-utils';
 import { loadoutsSelector } from 'app/loadout-drawer/selectors';
-import { d2ManifestSelector } from 'app/manifest/selectors';
+import { d2ManifestSelector, useD2Definitions } from 'app/manifest/selectors';
 import { ItemFilter } from 'app/search/filter-types';
 import { searchFilterSelector } from 'app/search/search-filter';
+import { UpgradeSpendTier } from 'app/settings/initial-settings';
 import { AppIcon, refreshIcon } from 'app/shell/icons';
 import { querySelector } from 'app/shell/selectors';
 import { RootState } from 'app/store/types';
@@ -39,7 +40,6 @@ import { useProcess } from './process/useProcess';
 import {
   generalSocketReusablePlugSetHash,
   ItemsByBucket,
-  LockableBucketHashes,
   statHashes,
   statHashToType,
   statKeys,
@@ -54,10 +54,13 @@ interface ProvidedProps {
 
 interface StoreProps {
   statOrder: StatTypes[];
-  assumeMasterwork: boolean;
+  upgradeSpendTier: UpgradeSpendTier;
   isPhonePortrait: boolean;
   items: Readonly<{
     [classType: number]: ItemsByBucket;
+  }>;
+  unusableExotics: Readonly<{
+    [classType: number]: DimItem[];
   }>;
   loadouts: Loadout[];
   filter: ItemFilter;
@@ -69,31 +72,63 @@ type Props = ProvidedProps & StoreProps;
 
 function mapStateToProps() {
   /** Gets items for the loadout builder and creates a mapping of classType -> bucketHash -> item array. */
-  const itemsSelector = createSelector(allItemsSelector, (allItems): Readonly<{
-    [classType: number]: ItemsByBucket;
-  }> => {
-    const items: {
-      [classType: number]: { [bucketHash: number]: DimItem[] };
-    } = {};
-    for (const item of allItems) {
-      if (!item || !isArmor2WithStats(item)) {
-        continue;
-      }
-      const { classType, bucket } = item;
+  const itemsSelector = createSelector(
+    allItemsSelector,
+    (
+      allItems
+    ): Readonly<{
+      [classType: number]: ItemsByBucket;
+    }> => {
+      const items: {
+        [classType: number]: { [bucketHash: number]: DimItem[] };
+      } = {};
+      for (const item of allItems) {
+        if (!item || !isArmor2WithStats(item)) {
+          continue;
+        }
+        const { classType, bucket } = item;
 
-      if (!items[classType]) {
-        items[classType] = {};
+        if (!items[classType]) {
+          items[classType] = {};
+        }
+
+        if (!items[classType][bucket.hash]) {
+          items[classType][bucket.hash] = [];
+        }
+
+        items[classType][bucket.hash].push(item);
       }
 
-      if (!items[classType][bucket.hash]) {
-        items[classType][bucket.hash] = [];
-      }
-
-      items[classType][bucket.hash].push(item);
+      return items;
     }
+  );
 
-    return items;
-  });
+  const unusableExoticsSelector = createSelector(
+    allItemsSelector,
+    (
+      allItems
+    ): Readonly<{
+      [classType: number]: DimItem[];
+    }> => {
+      const items: {
+        [classType: number]: DimItem[];
+      } = {};
+      for (const item of allItems) {
+        if (!item || item.energy || !item.equippingLabel) {
+          continue;
+        }
+        const { classType } = item;
+
+        if (!items[classType]) {
+          items[classType] = [];
+        }
+
+        items[classType].push(item);
+      }
+
+      return items;
+    }
+  );
 
   const statOrderSelector = createSelector(
     (state: RootState) => settingsSelector(state).loStatSortOrder,
@@ -143,12 +178,13 @@ function mapStateToProps() {
   );
 
   return (state: RootState): StoreProps => {
-    const { loAssumeMasterwork } = settingsSelector(state);
+    const { loUpgradeSpendTier } = settingsSelector(state);
     return {
       statOrder: statOrderSelector(state),
-      assumeMasterwork: loAssumeMasterwork,
+      upgradeSpendTier: loUpgradeSpendTier,
       isPhonePortrait: state.shell.isPhonePortrait,
       items: itemsSelector(state),
+      unusableExotics: unusableExoticsSelector(state),
       loadouts: loadoutsSelector(state),
       filter: searchFilterSelector(state),
       searchQuery: querySelector(state),
@@ -163,9 +199,10 @@ function mapStateToProps() {
 function LoadoutBuilder({
   stores,
   statOrder,
-  assumeMasterwork,
+  upgradeSpendTier,
   isPhonePortrait,
   items,
+  unusableExotics,
   loadouts,
   filter,
   preloadedLoadout,
@@ -176,6 +213,7 @@ function LoadoutBuilder({
     { lockedMap, lockedMods, lockedExotic, selectedStoreId, statFilters, modPicker, compareSet },
     lbDispatch,
   ] = useLbState(stores, preloadedLoadout);
+  const defs = useD2Definitions();
 
   const selectedStore = stores.find((store) => store.id === selectedStoreId);
 
@@ -190,35 +228,26 @@ function LoadoutBuilder({
   loadouts = equippedLoadout ? [...loadouts, equippedLoadout] : loadouts;
 
   const filteredItems = useMemo(
-    () => filterItems(characterItems, lockedMap, lockedMods, lockedExotic, filter),
-    [characterItems, lockedMap, lockedMods, lockedExotic, filter]
+    () =>
+      filterItems(
+        defs,
+        characterItems,
+        lockedMap,
+        lockedMods,
+        lockedExotic,
+        upgradeSpendTier,
+        filter
+      ),
+    [defs, characterItems, lockedMap, lockedMods, lockedExotic, upgradeSpendTier, filter]
   );
 
-  const availableExotics = useMemo(() => {
-    const exotics: DimItem[] = [];
-
-    if (selectedStore) {
-      const itemsForClass = items[selectedStore.classType];
-
-      for (const bucketHash of LockableBucketHashes) {
-        // itemsForClass[bucketHash] can be undefined if the user has no armour 2.0
-        for (const item of itemsForClass[bucketHash] || []) {
-          if (item.equippingLabel) {
-            exotics.push(item);
-          }
-        }
-      }
-
-      return exotics;
-    }
-  }, [selectedStore, items]);
-
   const { result, processing } = useProcess(
+    defs,
     selectedStore,
     filteredItems,
     lockedMap,
     lockedMods,
-    assumeMasterwork,
+    upgradeSpendTier,
     statOrder,
     statFilters
   );
@@ -248,9 +277,9 @@ function LoadoutBuilder({
       ),
       mods: lockedMods.map((mod) => mod.hash),
       query: searchQuery,
-      assumeMasterworked: assumeMasterwork,
+      upgradeSpendTier,
     }),
-    [assumeMasterwork, lockedMods, searchQuery, statFilters, statOrder]
+    [upgradeSpendTier, lockedMods, searchQuery, statFilters, statOrder]
   );
 
   const combos = result?.combos || 0;
@@ -276,14 +305,15 @@ function LoadoutBuilder({
           lbDispatch({ type: 'statFiltersChanged', statFilters })
         }
         order={statOrder}
-        assumeMasterwork={assumeMasterwork}
       />
 
       <LockArmorAndPerks
         selectedStore={selectedStore}
         lockedMap={lockedMap}
         lockedMods={lockedMods}
-        availableExotics={availableExotics}
+        upgradeSpendTier={upgradeSpendTier}
+        characterItems={characterItems}
+        unusableExotics={selectedStore && unusableExotics[selectedStore.classType]}
         lockedExotic={lockedExotic}
         lbDispatch={lbDispatch}
       />
@@ -337,6 +367,7 @@ function LoadoutBuilder({
             loadouts={loadouts}
             params={params}
             halfTierMods={halfTierMods}
+            upgradeSpendTier={upgradeSpendTier}
           />
         )}
         {modPicker.open &&
@@ -364,7 +395,7 @@ function LoadoutBuilder({
               classType={selectedStore.classType}
               statOrder={statOrder}
               enabledStats={enabledStats}
-              assumeMasterwork={assumeMasterwork}
+              upgradeSpendTier={upgradeSpendTier}
               onClose={() => lbDispatch({ type: 'closeCompareDrawer' })}
             />,
             document.body

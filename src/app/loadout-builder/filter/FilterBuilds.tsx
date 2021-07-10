@@ -1,5 +1,3 @@
-import CheckButton from 'app/dim-ui/CheckButton';
-import { t } from 'app/i18next-t';
 import { useSetSetting } from 'app/settings/hooks';
 import _ from 'lodash';
 import React from 'react';
@@ -14,13 +12,11 @@ export default function FilterBuilds({
   statRanges,
   stats,
   order,
-  assumeMasterwork,
   onStatFiltersChanged,
 }: {
   statRanges?: { [statType in StatTypes]: MinMax };
   stats: { [statType in StatTypes]: MinMaxIgnored };
   order: StatTypes[];
-  assumeMasterwork: boolean;
   onStatFiltersChanged(stats: { [statType in StatTypes]: MinMaxIgnored }): void;
 }) {
   const setSetting = useSetSetting();
@@ -46,18 +42,6 @@ export default function FilterBuilds({
           onStatFiltersChanged={onStatFiltersChanged}
           onStatOrderChanged={onStatOrderChanged}
         />
-        <div
-          className={styles.assumeMasterwork}
-          title={t('LoadoutBuilder.AssumeMasterworkDetailed')}
-        >
-          <CheckButton
-            name="lo-assume-masterwork"
-            checked={assumeMasterwork}
-            onChange={(checked) => setSetting('loAssumeMasterwork', checked)}
-          >
-            {t('LoadoutBuilder.AssumeMasterwork')}
-          </CheckButton>
-        </div>
       </div>
     </div>
   );

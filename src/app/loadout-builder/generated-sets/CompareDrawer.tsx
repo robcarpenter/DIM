@@ -1,3 +1,4 @@
+import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
 import Sheet from 'app/dim-ui/Sheet';
 import { t } from 'app/i18next-t';
 import ConnectedInventoryItem from 'app/inventory/ConnectedInventoryItem';
@@ -7,6 +8,7 @@ import { updateLoadout } from 'app/loadout-drawer/actions';
 import { Loadout, LoadoutItem } from 'app/loadout-drawer/loadout-types';
 import { getModRenderKey } from 'app/loadout/mod-utils';
 import { useD2Definitions } from 'app/manifest/selectors';
+import { UpgradeSpendTier } from 'app/settings/initial-settings';
 import { RootState, ThunkDispatchProp } from 'app/store/types';
 import { DestinyClass } from 'bungie-api-ts/destiny2';
 import clsx from 'clsx';
@@ -18,19 +20,26 @@ import { getItemsFromLoadoutItems } from '../../loadout-drawer/loadout-utils';
 import { assignModsToArmorSet } from '../mod-utils';
 import { getTotalModStatChanges } from '../process/mappers';
 import { ArmorSet, LockableBucketHashes, statHashes, statKeys, StatTypes } from '../types';
-import { getPower } from '../utils';
+import { getPower, upgradeSpendTierToMaxEnergy } from '../utils';
 import styles from './CompareDrawer.m.scss';
 import Mod from './Mod';
 import SetStats from './SetStats';
 import Sockets from './Sockets';
 
-function getItemStats(item: DimItem, assumeMasterwork: boolean | null) {
+function getItemStats(
+  defs: D2ManifestDefinitions,
+  item: DimItem,
+  upgradeSpendTier: UpgradeSpendTier
+) {
   const baseStats = _.mapValues(
     statHashes,
     (value) => item.stats?.find((s) => s.statHash === value)?.base || 0
   );
 
-  if (assumeMasterwork || item.energy?.energyCapacity === 10) {
+  if (
+    upgradeSpendTierToMaxEnergy(defs, upgradeSpendTier, item) === 10 ||
+    item.energy?.energyCapacity === 10
+  ) {
     for (const statType of statKeys) {
       baseStats[statType] += 2;
     }
@@ -46,7 +55,7 @@ interface ProvidedProps {
   classType: DestinyClass;
   statOrder: StatTypes[];
   enabledStats: Set<StatTypes>;
-  assumeMasterwork: boolean;
+  upgradeSpendTier: UpgradeSpendTier;
   onClose(): void;
 }
 
@@ -64,6 +73,17 @@ function mapStateToProps() {
   });
 }
 
+function chooseSimilarLoadout(
+  setItems: DimItem[],
+  useableLoadouts: Loadout[]
+): Loadout | undefined {
+  const exotic = setItems.find((i) => i.equippingLabel);
+  return (
+    (exotic && useableLoadouts.find((l) => l.items.some((i) => i.hash === exotic.hash))) ||
+    (useableLoadouts.length ? useableLoadouts[0] : undefined)
+  );
+}
+
 function CompareDrawer({
   characterClass,
   loadouts,
@@ -73,18 +93,18 @@ function CompareDrawer({
   classType,
   statOrder,
   enabledStats,
-  assumeMasterwork,
+  upgradeSpendTier,
   onClose,
   dispatch,
 }: Props) {
   const defs = useD2Definitions()!;
   const useableLoadouts = loadouts.filter((l) => l.classType === classType);
 
-  const [selectedLoadout, setSelectedLoadout] = useState<Loadout | undefined>(
-    useableLoadouts.length ? useableLoadouts[0] : undefined
-  );
-
   const setItems = set.armor.map((items) => items[0]);
+
+  const [selectedLoadout, setSelectedLoadout] = useState<Loadout | undefined>(
+    chooseSimilarLoadout(setItems, useableLoadouts)
+  );
 
   // This probably isn't needed but I am being cautious as it iterates over the stores.
   const loadoutItems = useMemo(() => {
@@ -103,26 +123,30 @@ function CompareDrawer({
   const loadoutStats = _.mapValues(statHashes, () => 0);
 
   for (const item of loadoutItems) {
-    const itemStats = getItemStats(item, assumeMasterwork);
+    const itemStats = getItemStats(defs, item, upgradeSpendTier);
     for (const statType of statKeys) {
       loadoutStats[statType] += itemStats[statType];
     }
   }
 
-  const lockedModStats = getTotalModStatChanges(lockedMods);
+  const lockedModStats = getTotalModStatChanges(lockedMods, characterClass);
 
   for (const statType of statKeys) {
     loadoutStats[statType] += lockedModStats[statType];
   }
 
   const [assignedMods] = assignModsToArmorSet(
+    defs,
     set.armor.map((items) => items[0]),
-    lockedMods
+    lockedMods,
+    upgradeSpendTier
   );
 
   const [loadoutAssignedMods, loadoutUnassignedMods] = assignModsToArmorSet(
+    defs,
     loadoutItems,
-    lockedMods
+    lockedMods,
+    upgradeSpendTier
   );
 
   const onSaveLoadout = (e: React.MouseEvent) => {

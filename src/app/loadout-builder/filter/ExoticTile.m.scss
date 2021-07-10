@@ -1,3 +1,5 @@
+@import '../../variables';
+
 .exotic {
   > * {
     margin-right: 8px;
@@ -13,6 +15,15 @@
   &:hover {
     background-color: rgba(255, 255, 255, 0.1);
   }
+}
+
+.selected {
+  border-color: $orange;
+}
+
+.disabled {
+  cursor: default;
+  filter: contrast(0.5) brightness(0.5);
 }
 
 .details {

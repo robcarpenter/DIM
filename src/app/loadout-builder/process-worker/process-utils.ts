@@ -1,5 +1,4 @@
 import { DestinyEnergyType } from 'bungie-api-ts/destiny2';
-import { MAX_ARMOR_ENERGY_CAPACITY } from '../../search/d2-known-values';
 import { ProcessItem, ProcessMod } from './types';
 
 interface SortParam {
@@ -95,6 +94,7 @@ function getEnergyCounts(modsOrItems: (ProcessMod | null | ProcessItemSubset)[])
   let arcCount = 0;
   let solarCount = 0;
   let voidCount = 0;
+  let anyCount = 0;
 
   for (const item of modsOrItems) {
     switch (item?.energy?.type) {
@@ -107,12 +107,15 @@ function getEnergyCounts(modsOrItems: (ProcessMod | null | ProcessItemSubset)[])
       case DestinyEnergyType.Void:
         voidCount += 1;
         break;
+      case DestinyEnergyType.Any:
+        anyCount += 1;
+        break;
       default:
         break;
     }
   }
 
-  return [arcCount, solarCount, voidCount];
+  return [arcCount, solarCount, voidCount, anyCount];
 }
 
 // Used for null values
@@ -136,7 +139,7 @@ export function canTakeSlotIndependantMods(
   // Sort the items like the mods are to try and get a greedy result
   const sortedItems = Array.from(items).sort(sortProcessModsOrItems);
 
-  const [arcItems, solarItems, voidItems] = getEnergyCounts(sortedItems);
+  const [arcItems, solarItems, voidItems, anyItems] = getEnergyCounts(sortedItems);
   const [arcSeasonalMods, solarSeasonalMods, voidSeasonalMods] = getEnergyCounts(
     otherModPermutations[0]
   );
@@ -147,15 +150,15 @@ export function canTakeSlotIndependantMods(
 
   // A quick check to see if we have enough of each energy type for the mods
   if (
-    voidItems < voidGeneralMods ||
-    voidItems < voidSeasonalMods ||
-    voidItems < voidRaidMods ||
-    solarItems < solarGeneralMods ||
-    solarItems < solarSeasonalMods ||
-    solarItems < solarRaidMods ||
-    arcItems < arcGeneralMods ||
-    arcItems < arcSeasonalMods ||
-    arcItems < arcRaidMods
+    voidItems + anyItems < voidGeneralMods ||
+    voidItems + anyItems < voidSeasonalMods ||
+    voidItems + anyItems < voidRaidMods ||
+    solarItems + anyItems < solarGeneralMods ||
+    solarItems + anyItems < solarSeasonalMods ||
+    solarItems + anyItems < solarRaidMods ||
+    arcItems + anyItems < arcGeneralMods ||
+    arcItems + anyItems < arcSeasonalMods ||
+    arcItems + anyItems < arcRaidMods
   ) {
     return false;
   }
@@ -175,8 +178,10 @@ export function canTakeSlotIndependantMods(
 
       const otherEnergyIsValid =
         item.energy &&
-        item.energy.val + otherEnergy.val <= MAX_ARMOR_ENERGY_CAPACITY &&
-        (item.energy.type === otherEnergy.type || otherEnergy.type === DestinyEnergyType.Any);
+        item.energy.val + otherEnergy.val <= item.energy.capacity &&
+        (item.energy.type === otherEnergy.type ||
+          otherEnergy.type === DestinyEnergyType.Any ||
+          item.energy.type === DestinyEnergyType.Any);
 
       // The other mods wont fit in the item set so move on to the next set of mods
       if (!(otherEnergyIsValid && item.compatibleModSeasons?.includes(tag))) {
@@ -199,8 +204,10 @@ export function canTakeSlotIndependantMods(
 
         const generalEnergyIsValid =
           item.energy &&
-          item.energy.val + generalEnergy.val + otherEnergy.val <= MAX_ARMOR_ENERGY_CAPACITY &&
-          (item.energy.type === generalEnergy.type || generalEnergy.type === DestinyEnergyType.Any);
+          item.energy.val + generalEnergy.val + otherEnergy.val <= item.energy.capacity &&
+          (item.energy.type === generalEnergy.type ||
+            generalEnergy.type === DestinyEnergyType.Any ||
+            item.energy.type === DestinyEnergyType.Any);
 
         // The general mods wont fit in the item set so move on to the next set of mods
         if (!generalEnergyIsValid) {
@@ -226,8 +233,10 @@ export function canTakeSlotIndependantMods(
           const raidEnergyIsValid =
             item.energy &&
             item.energy.val + generalEnergy.val + otherEnergy.val + raidEnergy.val <=
-              MAX_ARMOR_ENERGY_CAPACITY &&
-            (item.energy.type === raidEnergy.type || raidEnergy.type === DestinyEnergyType.Any);
+              item.energy.capacity &&
+            (item.energy.type === raidEnergy.type ||
+              raidEnergy.type === DestinyEnergyType.Any ||
+              item.energy.type === DestinyEnergyType.Any);
 
           // Due to raid mods overlapping with legacy mods for last wish we need to ensure
           // that if an item has a legacy mod socket then another mod is not already intended
