@@ -110,7 +110,7 @@ function mapStateToProps() {
       hasWishList: hasWishListSelector(state),
       isPhonePortrait: state.shell.isPhonePortrait,
       enabledColumns: settingsSelector(state)[columnSetting(itemType)],
-      customTotalStatsByClass: settingsSelector(state).customTotalStatsByClass,
+      customTotalStatsByClass: oldCustomTotalSelector(state),
       loadouts: loadoutsSelector(state),
       newItems: state.inventory.newItems,
       destinyVersion: destinyVersionSelector(state),

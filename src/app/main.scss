@@ -394,7 +394,7 @@ select {
   }
   &.danger {
     &:hover {
-      background-color: $red;
+      background-color: $red !important;
     }
   }
   // Set focus styles

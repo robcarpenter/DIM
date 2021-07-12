@@ -24,6 +24,11 @@ export function CustomStatWeightsFromHash({
   return <CustomStatWeightsDisplay className={className} customStat={customStat} />;
 }
 
+/**
+ * displays the up-to-six stats a custom stat total is comprised of.
+ * if the weights are only 0 or 1, it'll just be icons.
+ * if some weights are above 1, the stat icons will also include numeric weights.
+ */
 export function CustomStatWeightsDisplay({
   customStat,
   className,

@@ -1,8 +1,9 @@
-import { customStatsSelector } from 'app/dim-api/selectors';
+import { customStatsSelector, oldCustomTotalSelector } from 'app/dim-api/selectors';
 import BungieImage from 'app/dim-ui/BungieImage';
 import ClassIcon from 'app/dim-ui/ClassIcon';
 import { CustomStatWeightsDisplay } from 'app/dim-ui/CustomStatWeights';
 import Select from 'app/dim-ui/Select';
+import Switch from 'app/dim-ui/Switch';
 import { t } from 'app/i18next-t';
 import { useD2Definitions } from 'app/manifest/selectors';
 import { showNotification } from 'app/notifications/notifications';
@@ -20,6 +21,7 @@ import styles from './CustomStatsSettings.m.scss';
 import { useSetSetting } from './hooks';
 import { CustomStatDef, CustomStatWeights } from './initial-settings';
 
+// an order for the class dropdown
 const classes = [
   DestinyClass.Hunter,
   DestinyClass.Titan,
@@ -27,9 +29,13 @@ const classes = [
   DestinyClass.Unknown,
 ];
 
+/**
+ * a list of user-defined custom stats, each editable
+ */
 export function CustomStatsSettings() {
   const customStatList = useSelector(customStatsSelector);
   const [editing, setEditing] = useState('');
+  const [weightsMode, setWeightsMode] = useState(false);
   const [provisionalStat, setProvisionalStat] = useState<CustomStatDef>();
 
   const defs = useD2Definitions();
@@ -47,17 +53,35 @@ export function CustomStatsSettings() {
   };
   return (
     <div className={'setting'}>
-      {!editing && (
-        <button type="button" className={clsx('dim-button', styles.addNew)} onClick={onAddNew}>
-          <AppIcon icon={addIcon} />
-        </button>
+      <button
+        type="button"
+        className={clsx('dim-button', styles.addNew)}
+        onClick={onAddNew}
+        disabled={Boolean(editing)}
+      >
+        <AppIcon icon={addIcon} />
+      </button>
+      {$DIM_FLAVOR === 'dev' && (
+        <span className={styles.addNew}>
+          dev only: use stat weights{' '}
+          <Switch
+            checked={weightsMode}
+            name="weightsMode"
+            onChange={() => setWeightsMode(!weightsMode)}
+          />
+        </span>
       )}
       <label htmlFor={''}>{t('Settings.CustomStatTitle')}</label>
       <div className={clsx(styles.customDesc, 'fineprint')}>{t('Settings.CustomStatDesc')}</div>
       <div className={styles.customStatsSettings}>
         {[...(provisionalStat ? [provisionalStat] : []), ...customStatList].map((c) =>
           c.id === editing ? (
-            <CustomStatEditor onDoneEditing={onDoneEditing} statDef={c} key={c.id} />
+            <CustomStatEditor
+              onDoneEditing={onDoneEditing}
+              weightsMode={$DIM_FLAVOR === 'dev' && weightsMode}
+              statDef={c}
+              key={c.id}
+            />
           ) : (
             <CustomStatView setEditing={setEditing} statDef={c} key={c.id} />
           )
@@ -67,15 +91,19 @@ export function CustomStatsSettings() {
   );
 }
 
+/** the editing view for a single custom stat */
 function CustomStatEditor({
   statDef,
   className,
   onDoneEditing,
+  weightsMode,
 }: {
   statDef: CustomStatDef;
   className?: string;
   // used to alert upstream that we are done editing this stat
   onDoneEditing(): void;
+  //
+  weightsMode: boolean;
 }) {
   const defs = useD2Definitions()!;
   const [classType, setClassType] = useState(statDef.class);
@@ -124,7 +152,22 @@ function CustomStatEditor({
                 title={stat.displayProperties.name}
                 src={stat.displayProperties.icon}
               />
-              <input type="number" max={9} min={0} maxLength={30} value={weight} onChange={onVal} />
+              {weightsMode ? (
+                <input
+                  type="number"
+                  max={9}
+                  min={0}
+                  maxLength={30}
+                  value={weight}
+                  onChange={onVal}
+                />
+              ) : (
+                <Switch
+                  name={`${statHash}_toggle`}
+                  checked={Boolean(weights[statHash])}
+                  onChange={(on) => setWeight(statHash, on ? '1' : '0')}
+                />
+              )}
             </label>
           );
         })}
@@ -151,7 +194,7 @@ function CustomStatEditor({
         </button>
         <button
           type="button"
-          className="dim-button"
+          className="dim-button danger"
           onClick={() => removeStat(statDef) && onDoneEditing()}
         >
           <AppIcon icon={deleteIcon} />
@@ -161,6 +204,7 @@ function CustomStatEditor({
   );
 }
 
+/** a state manager for a single set of stat weights */
 function useStatWeightsEditor(w: CustomStatWeights) {
   const [weights, setWeights] = useState(w);
   return [
@@ -170,6 +214,11 @@ function useStatWeightsEditor(w: CustomStatWeights) {
   ] as const;
 }
 
+/**
+ * the display view for a single stat.
+ * it can send a signal upstream to initiate edit mode,
+ * replacing itself with CustomStatEditor
+ */
 function CustomStatView({
   statDef,
   className,
@@ -196,7 +245,7 @@ function CustomStatView({
 
 // custom stat retrieval from state/settings needs to be in a stable order,
 // between stat generation (stats.ts) and display (ItemStat.tsx)
-// so let's just neatly sort them as we commit them to settings.
+// so let's neatly sort them as we commit them to settings.
 const customStatSort = chainComparator(
   compareBy((customStat: CustomStatDef) => customStat.class),
   compareBy((customStat: CustomStatDef) => customStat.label)
@@ -205,6 +254,7 @@ const customStatSort = chainComparator(
 function useSaveStat() {
   const setSetting = useSetSetting();
   const customStatList = useSelector(customStatsSelector);
+  const oldCustomTotals = useSelector(oldCustomTotalSelector);
   return (newStat: CustomStatDef) => {
     const weightValues = Object.values(newStat.weights);
     const allOtherStats = customStatList.filter((s) => s.id !== newStat.id);
@@ -235,10 +285,13 @@ function useSaveStat() {
       warnInvalidCustomStat(t('Settings.CustomErrorLabel'));
       return false;
     } else {
+      // commit this new stat to settings
       setSetting(
         'customStats',
         [...allOtherStats.filter((s) => s.id), newStat].sort(customStatSort)
       );
+      // wipe out the old-style custom stat for this class
+      setSetting('customTotalStatsByClass', { ...oldCustomTotals, [newStat.class]: [] });
       return true;
     }
   };
