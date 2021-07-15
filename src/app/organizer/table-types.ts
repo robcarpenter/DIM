@@ -52,3 +52,5 @@ export interface ColumnSort {
   columnId: string;
   sort: SortDirection;
 }
+
+export type ColumnWithStat = ColumnDefinition & { statHash: number };

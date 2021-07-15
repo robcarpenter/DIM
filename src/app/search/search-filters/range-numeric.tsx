@@ -5,6 +5,7 @@ import { generateSuggestionsForFilter } from '../suggestions-generation';
 
 const rangeStringRegex = /^([<=>]{0,2})(\d+(?:\.\d+)?)$/;
 
+// this turns a string like "<=2" into a function like (x)=>x <= 2
 export function rangeStringToComparator(rangeString?: string) {
   if (!rangeString) {
     throw new Error('Missing range comparison');
@@ -20,15 +21,15 @@ export function rangeStringToComparator(rangeString?: string) {
   switch (operator) {
     case '=':
     case '':
-      return (compare: number) => compare === comparisonValue;
+      return (compare: number | undefined) => compare !== undefined && compare === comparisonValue;
     case '<':
-      return (compare: number) => compare < comparisonValue;
+      return (compare: number | undefined) => compare !== undefined && compare < comparisonValue;
     case '<=':
-      return (compare: number) => compare <= comparisonValue;
+      return (compare: number | undefined) => compare !== undefined && compare <= comparisonValue;
     case '>':
-      return (compare: number) => compare > comparisonValue;
+      return (compare: number | undefined) => compare !== undefined && compare > comparisonValue;
     case '>=':
-      return (compare: number) => compare >= comparisonValue;
+      return (compare: number | undefined) => compare !== undefined && compare >= comparisonValue;
   }
   throw new Error('Unknown range operator ' + operator);
 }

@@ -15,8 +15,8 @@ export function makeCustomStat(
   // we want the effect of all the non-zero multipliers to average out to 1x
   // like STR x 1 / DIS x 2 / MOB x 3 --- to do this --- STR x .5 / DIS x 1 / MOB x 1.5
 
-  // this way, you can exclude a stat by setting it to 0 (which will reduce your total)
-  // but among included stats, there's no overall bias toward creating higher or lower total,
+  // this way, you can exclude a stat by setting it to 0 (which will reduce your total), but
+  // among *included* stats, there's no overall bias toward creating higher or lower total,
   // except of course when the item has better values in preferred (heavily weighted) stats
 
   // also, this way, a weighting that's just 1x's and 0x's, becomes simply

@@ -1,5 +1,6 @@
 import { ItemHashTag } from '@destinyitemmanager/dim-api-types';
-import { settingsSelector } from 'app/dim-api/selectors';
+import { customStatsSelector, settingsSelector } from 'app/dim-api/selectors';
+import { CustomStatDef } from 'app/settings/initial-settings';
 import { RootState } from 'app/store/types';
 import { errorLog } from 'app/utils/log';
 import _ from 'lodash';
@@ -43,6 +44,7 @@ export const filterFactorySelector = createSelector(
   itemInfosSelector,
   itemHashTagsSelector,
   (state: RootState) => settingsSelector(state).language,
+  customStatsSelector,
   makeSearchFilterFactory
 );
 
@@ -72,7 +74,8 @@ function makeSearchFilterFactory(
   itemHashTags: {
     [itemHash: string]: ItemHashTag;
   },
-  language: string
+  language: string,
+  customStats: CustomStatDef[]
 ) {
   const filterContext: FilterContext = {
     stores,
@@ -84,6 +87,7 @@ function makeSearchFilterFactory(
     itemInfos,
     itemHashTags,
     language,
+    customStats,
   };
 
   return (query: string): ItemFilter => {

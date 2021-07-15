@@ -2,7 +2,7 @@ import { DestinyVersion } from '@destinyitemmanager/dim-api-types';
 import { destinyVersionSelector } from 'app/accounts/selectors';
 /* eslint-disable react/jsx-key, react/prop-types */
 import { StatInfo } from 'app/compare/Compare';
-import { oldCustomTotalSelector, settingsSelector } from 'app/dim-api/selectors';
+import { customStatsSelector, settingsSelector } from 'app/dim-api/selectors';
 import UserGuideLink from 'app/dim-ui/UserGuideLink';
 import { t, tl } from 'app/i18next-t';
 import { setItemNote } from 'app/inventory/actions';
@@ -73,7 +73,7 @@ interface StoreProps {
   hasWishList: boolean;
   isPhonePortrait: boolean;
   enabledColumns: string[];
-  customTotalStatsByClass: ReturnType<typeof oldCustomTotalSelector>;
+  customStatDefs: ReturnType<typeof customStatsSelector>;
   loadouts: Loadout[];
   newItems: Set<string>;
   destinyVersion: DestinyVersion;
@@ -110,7 +110,7 @@ function mapStateToProps() {
       hasWishList: hasWishListSelector(state),
       isPhonePortrait: state.shell.isPhonePortrait,
       enabledColumns: settingsSelector(state)[columnSetting(itemType)],
-      customTotalStatsByClass: oldCustomTotalSelector(state),
+      customStatDefs: customStatsSelector(state),
       loadouts: loadoutsSelector(state),
       newItems: state.inventory.newItems,
       destinyVersion: destinyVersionSelector(state),
@@ -130,7 +130,7 @@ function ItemTable({
   hasWishList,
   stores,
   enabledColumns,
-  customTotalStatsByClass,
+  customStatDefs,
   loadouts,
   newItems,
   destinyVersion,
@@ -183,7 +183,6 @@ function ItemTable({
   const isGhost = Boolean(firstCategory?.itemCategoryHash === ItemCategoryHashes.Ghost);
   const isArmor = !isWeapon && !isGhost;
   const itemType = isWeapon ? 'weapon' : isArmor ? 'armor' : 'ghost';
-  const customStatTotal = customTotalStatsByClass[classIfAny] ?? emptyArray();
 
   const columns: ColumnDefinition[] = useMemo(
     () =>
@@ -194,7 +193,7 @@ function ItemTable({
         itemInfos,
         wishList,
         hasWishList,
-        customStatTotal,
+        customStatDefs,
         loadouts,
         newItems,
         destinyVersion
@@ -205,7 +204,7 @@ function ItemTable({
       statHashes,
       itemType,
       itemInfos,
-      customStatTotal,
+      customStatDefs,
       classIfAny,
       loadouts,
       newItems,

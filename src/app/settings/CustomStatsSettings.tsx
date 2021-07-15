@@ -17,6 +17,7 @@ import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 // eslint-disable-next-line css-modules/no-unused-class
 import weightsStyles from '../dim-ui/CustomStatWeights.m.scss';
+import { simplifyStatLabel } from './custom-stats';
 import styles from './CustomStatsSettings.m.scss';
 import { useSetSetting } from './hooks';
 import { CustomStatDef, CustomStatWeights } from './initial-settings';
@@ -30,7 +31,7 @@ const classes = [
 ];
 
 /**
- * a list of user-defined custom stats, each editable
+ * a list of user-defined custom stat displays. each can be switched into editing mode.
  */
 export function CustomStatsSettings() {
   const customStatList = useSelector(customStatsSelector);
@@ -42,15 +43,21 @@ export function CustomStatsSettings() {
   if (!defs) {
     return null;
   }
+
+  // provisional stat, if there is one, is displayed above the
+  // others in the list, and hasn't been saved to settings yet
   const onAddNew = () => {
     const newStat = createNewStat();
     setProvisionalStat(newStat);
     setEditing(newStat.id);
   };
+
+  // children components call this, to end editing mode
   const onDoneEditing = () => {
     setEditing('');
     setProvisionalStat(undefined);
   };
+
   return (
     <div className={'setting'}>
       <button
@@ -102,15 +109,12 @@ function CustomStatEditor({
   className?: string;
   // used to alert upstream that we are done editing this stat
   onDoneEditing(): void;
-  //
+  // if false, this editor only lets you toggle each armor stat on and off (weight 0 and weight 1)
   weightsMode: boolean;
 }) {
   const defs = useD2Definitions()!;
   const [classType, setClassType] = useState(statDef.class);
   const [label, setLabel] = useState(statDef.label);
-  // cheating with types here: pedantically speaking, editingStat might be undefined.
-  // but no conditional hooks allowed, so this wrong type works to our advantage
-  // since we can't short circuit/narrow early by returning if !editingStat
   const [weights, setWeight] = useStatWeightsEditor(statDef.weights);
   const saveStat = useSaveStat();
   const removeStat = useRemoveStat();
@@ -121,7 +125,7 @@ function CustomStatEditor({
   }));
   const onClassChange = ({ target }: React.ChangeEvent<HTMLInputElement>) =>
     setLabel(target.value.slice(0, 30));
-  const simpleLabel = simplifyStatLabel(label);
+  const shortLabel = simplifyStatLabel(label);
 
   return (
     <div className={clsx(className, styles.customStatEditor)}>
@@ -174,11 +178,11 @@ function CustomStatEditor({
       </div>
       <div className={styles.identifyingInfo}>
         <span className={clsx('fineprint', styles.filter)}>
-          {simpleLabel.length > 0 && (
+          {shortLabel.length > 0 && (
             <>
               {t('Filter.Filter')}
               {': '}
-              <code>{`stat:${simpleLabel}:>=30`}</code>
+              <code>{`stat:${shortLabel}:>=30`}</code>
             </>
           )}
         </span>
@@ -186,8 +190,9 @@ function CustomStatEditor({
           type="button"
           className="dim-button"
           onClick={() => {
-            // try saving the proposed new stat, with newly set label, class, and weights
-            saveStat({ ...statDef, class: classType, label, weights }) && onDoneEditing();
+            // try saving the proposed new custom stat, with newly set label, class, and weights
+            saveStat({ ...statDef, class: classType, label, shortLabel, weights }) &&
+              onDoneEditing();
           }}
         >
           <AppIcon icon={saveIcon} />
@@ -255,10 +260,11 @@ function useSaveStat() {
   const setSetting = useSetSetting();
   const customStatList = useSelector(customStatsSelector);
   const oldCustomTotals = useSelector(oldCustomTotalSelector);
+
   return (newStat: CustomStatDef) => {
+    // when trying to save, update the short label to match the submitted long label
+    newStat.shortLabel = simplifyStatLabel(newStat.label);
     const weightValues = Object.values(newStat.weights);
-    const allOtherStats = customStatList.filter((s) => s.id !== newStat.id);
-    const proposedSimpleLabel = simplifyStatLabel(newStat.label);
 
     if (
       // if there's any invalid values
@@ -270,13 +276,14 @@ function useSaveStat() {
       return false;
     }
 
+    const allOtherStats = customStatList.filter((s) => s.id !== newStat.id);
     if (
       // if there's not enough label
-      !proposedSimpleLabel ||
+      !newStat.shortLabel ||
       // or there's an existing stat with an overlapping label & class
       allOtherStats.some(
         (s) =>
-          simplifyStatLabel(s.label) === proposedSimpleLabel &&
+          s.shortLabel === newStat.shortLabel &&
           (s.class === newStat.class ||
             s.class === DestinyClass.Unknown ||
             newStat.class === DestinyClass.Unknown)
@@ -315,14 +322,11 @@ function useRemoveStat() {
 function createNewStat(): CustomStatDef {
   return {
     label: '',
+    shortLabel: '',
     class: DestinyClass.Unknown,
     weights: { ...evenStatWeights },
     id: uuidv4(),
   };
-}
-
-export function simplifyStatLabel(s: string) {
-  return s.toLocaleLowerCase().replace(/\W/gu, '');
 }
 
 export function normalizeStatLabel(s: string) {

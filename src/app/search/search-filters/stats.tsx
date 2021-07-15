@@ -1,8 +1,12 @@
+import { settingsSelector } from 'app/dim-api/selectors';
 import { tl } from 'app/i18next-t';
 import { DimItem, DimStat } from 'app/inventory/item-types';
 import { DimStore } from 'app/inventory/store-types';
 import { maxLightItemSet, maxStatLoadout } from 'app/loadout-drawer/auto-loadouts';
+import { simplifyStatLabel } from 'app/settings/custom-stats';
 import _ from 'lodash';
+import reduxStore from '../../store/store';
+import { CUSTOM_STAT_BASE_HASH } from '../d2-known-values';
 import { FilterDefinition } from '../filter-types';
 import {
   allStatNames,
@@ -11,22 +15,38 @@ import {
   searchableArmorStatNames,
   statHashByName,
 } from '../search-filter-values';
+import { generateSuggestionsForFilter } from '../suggestions-generation';
 import { rangeStringToComparator } from './range-numeric';
-
 // filters that operate on stats, several of which calculate values from all items beforehand
 const statFilters: FilterDefinition[] = [
   {
     keywords: 'stat',
     description: tl('Filter.Stats'),
     format: 'range',
-    suggestions: allStatNames,
+    suggestionsGenerator: ({ settings }) =>
+      generateSuggestionsForFilter({
+        keywords: 'stat',
+        format: 'range',
+        suggestions: [
+          ...allStatNames,
+          ...(settings?.customStats.map((c) => simplifyStatLabel(c.label)) ?? []),
+        ],
+      }),
     filter: ({ filterValue }) => statFilterFromString(filterValue),
   },
   {
     keywords: 'basestat',
     description: tl('Filter.StatsBase'),
     format: 'range',
-    suggestions: searchableArmorStatNames,
+    suggestionsGenerator: ({ settings }) =>
+      generateSuggestionsForFilter({
+        keywords: 'basestat',
+        format: 'range',
+        suggestions: [
+          ...searchableArmorStatNames,
+          ...(settings?.customStats.map((c) => simplifyStatLabel(c.label)) ?? []),
+        ],
+      }),
     filter: ({ filterValue }) => statFilterFromString(filterValue, true),
   },
   {
@@ -143,7 +163,14 @@ function createStatCombiner(statString: string, byWhichValue: 'base' | 'value') 
   // an array of arrays of stat hashes. inner arrays are averaged, then outer array totaled
   const nestedAddends = statString.split('+').map((addendString) => {
     const averagedHashes = addendString.split('&').map((statName) => {
-      const statHash = statHashByName[statName];
+      let statHash = statHashByName[statName];
+      if (!statHash) {
+        const { customStats } = settingsSelector(reduxStore.getState());
+        const index = customStats.findIndex((s) => simplifyStatLabel(s.label) === statName);
+        if (index !== -1) {
+          statHash = CUSTOM_STAT_BASE_HASH - index;
+        }
+      }
       if (!statHash) {
         throw new Error(`invalid stat name: "${statName}"`);
       }
@@ -153,11 +180,26 @@ function createStatCombiner(statString: string, byWhichValue: 'base' | 'value') 
   });
 
   return (item: DimItem) => {
+    // missingStat tracks when a stat we are looking for doesn't exist on the item at all.
+    // this is nbd on weapons, because their definition data is a mess. but for armor,
+    // we enforce all normal armor stats exist, so this mainly affects custom stats.
+    // if we ask for a custom stat that only exists on hunter armor,
+    // we want warlock armor to evaluate n/a, not evaluate as 0
+    let missingStat = false;
+
     const statValuesByHash = getStatValuesByHash(item, byWhichValue);
-    return _.sumBy(nestedAddends, (averageGroup) =>
-      // would ideally be "?? 0" but polyfills are big and || works fine
-      _.meanBy(averageGroup, (statHash) => statValuesByHash[statHash] || 0)
+    const combinedTotal = _.sumBy(nestedAddends, (averageGroup) =>
+      _.meanBy(averageGroup, (statHash) => {
+        const statValue = statValuesByHash[statHash];
+
+        if (statValue === undefined && item.bucket.inArmor) {
+          missingStat = true;
+        }
+        // in a perfect world this would be "?? 0" but polyfills are big and || works fine
+        return statValue || 0;
+      })
     );
+    return missingStat ? undefined : combinedTotal;
   };
 }
 

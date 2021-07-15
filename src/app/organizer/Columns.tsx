@@ -2,7 +2,6 @@ import { DestinyVersion, TagValue } from '@destinyitemmanager/dim-api-types';
 import { StoreIcon } from 'app/character-tile/StoreIcon';
 import { StatInfo } from 'app/compare/Compare';
 import BungieImage from 'app/dim-ui/BungieImage';
-import { StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
 import ElementIcon from 'app/dim-ui/ElementIcon';
 import { KillTrackerInfo } from 'app/dim-ui/KillTracker';
 import PressTip from 'app/dim-ui/PressTip';
@@ -24,6 +23,7 @@ import NotesArea from 'app/item-popup/NotesArea';
 import PlugTooltip from 'app/item-popup/PlugTooltip';
 import { Loadout } from 'app/loadout-drawer/loadout-types';
 import { statHashByName } from 'app/search/search-filter-values';
+import { CustomStatDef } from 'app/settings/initial-settings';
 import { getColor, percent } from 'app/shell/filters';
 import {
   AppIcon,
@@ -59,9 +59,10 @@ import _ from 'lodash';
 /* eslint-disable react/jsx-key, react/prop-types */
 import React from 'react';
 import { useSelector } from 'react-redux';
+import { createCustomStatColumns } from './CustomStatColumns';
 // eslint-disable-next-line css-modules/no-unused-class
 import styles from './ItemTable.m.scss';
-import { ColumnDefinition, ColumnGroup, SortDirection } from './table-types';
+import { ColumnDefinition, ColumnGroup, ColumnWithStat, SortDirection } from './table-types';
 
 /**
  * Get the ID used to select whether this column is shown or not.
@@ -84,7 +85,7 @@ export function getColumns(
   itemInfos: ItemInfos,
   wishList: (item: DimItem) => InventoryWishListRoll | undefined,
   hasWishList: boolean,
-  customTotalStat: number[],
+  customStatDefs: CustomStatDef[],
   loadouts: Loadout[],
   newItems: Set<string>,
   destinyVersion: DestinyVersion
@@ -111,7 +112,6 @@ export function getColumns(
     [StatHashes.InventorySize]: t('Organizer.Stats.Inventory'), // Inventory Size
   };
 
-  type ColumnWithStat = ColumnDefinition & { statHash: number };
   const statColumns: ColumnWithStat[] = _.sortBy(
     _.compact(
       _.map(statHashes, (statInfo, statHashStr): ColumnWithStat | undefined => {
@@ -194,7 +194,7 @@ export function getColumns(
           (s) => getStatSortOrder(s.statHash)
         )
       : [];
-
+  const customStats = createCustomStatColumns(customStatDefs, classType);
   const columns: ColumnDefinition[] = _.compact([
     {
       id: 'icon',
@@ -425,20 +425,7 @@ export function getColumns(
         cell: (value: number) => <span style={getColor(value, 'color')}>{value}%</span>,
         filter: (value) => `quality:>=${value}`,
       },
-    destinyVersion === 2 &&
-      isArmor && {
-        id: 'customstat',
-        header: (
-          <>
-            {t('Organizer.Columns.CustomTotal')}
-            <StatTotalToggle forClass={classType} readOnly={true} />
-          </>
-        ),
-        value: (item) =>
-          _.sumBy(item.stats, (s) => (customTotalStat.includes(s.statHash) ? s.base : 0)),
-        defaultSort: SortDirection.DESC,
-        filter: (value) => `stat:custom:>=${value}`,
-      },
+    ...(destinyVersion === 2 && isArmor ? customStats : []),
     destinyVersion === 2 &&
       isWeapon && {
         id: 'masterworkTier',
