@@ -498,7 +498,6 @@ function ItemTable({
             columns={columns}
             enabledColumns={enabledColumns}
             onChangeEnabledColumn={onChangeEnabledColumn}
-            forClass={classIfAny}
           />
         </div>
         {ReactDOM.createPortal(<style>{rowStyle}</style>, document.head)}

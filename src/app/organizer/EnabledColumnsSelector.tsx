@@ -1,5 +1,4 @@
 import { t } from 'app/i18next-t';
-import { DestinyClass } from 'bungie-api-ts/destiny2';
 import React from 'react';
 import { getColumnSelectionId } from './Columns';
 import DropDown, { DropDownItem } from './DropDown';
@@ -18,12 +17,11 @@ import { ColumnDefinition } from './table-types';
 export default React.memo(function EnabledColumnsSelector({
   columns,
   enabledColumns,
-  forClass,
+
   onChangeEnabledColumn,
 }: {
   columns: ColumnDefinition[];
   enabledColumns: string[];
-  forClass: DestinyClass;
   onChangeEnabledColumn(item: { checked: boolean; id: string }): void;
 }) {
   const items: { [id: string]: DropDownItem } = {};
@@ -51,7 +49,6 @@ export default React.memo(function EnabledColumnsSelector({
     <DropDown
       buttonText={t('Organizer.EnabledColumns')}
       dropDownItems={Object.values(items)}
-      forClass={forClass}
       right={true}
     />
   );

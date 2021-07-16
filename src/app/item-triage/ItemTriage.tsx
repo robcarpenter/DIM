@@ -1,7 +1,6 @@
 import { oldCustomTotalSelector } from 'app/dim-api/selectors';
 import BungieImage from 'app/dim-ui/BungieImage';
 import CollapsibleTitle from 'app/dim-ui/CollapsibleTitle';
-import { StatTotalToggle } from 'app/dim-ui/CustomStatTotal';
 import ElementIcon from 'app/dim-ui/ElementIcon';
 import { ExpandableTextBlock } from 'app/dim-ui/ExpandableTextBlock';
 import PressTip from 'app/dim-ui/PressTip';
@@ -204,10 +203,7 @@ export function ItemTriage({ item }: { item: DimItem }) {
                 <>
                   <div className={styles.bestStat}>
                     <span className={styles.statIconWrapper}> </span>
-                    <span className={styles.statValue}>
-                      {notableStats.customTotalMax.best}
-                    </span>{' '}
-                    <StatTotalToggle forClass={item.classType} className={styles.inlineBlock} />
+                    <span className={styles.statValue}>{notableStats.customTotalMax.best}</span>
                   </div>
                   <div className={styles.thisStat}>
                     <span className={styles.statValue}>{notableStats.customTotalMax.stat}</span> (
