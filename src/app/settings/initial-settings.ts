@@ -10,6 +10,7 @@ export interface CustomStatWeights {
 export interface CustomStatDef {
   id: string;
   label: string;
+  shortLabel: string;
   class: DestinyClass;
   weights: CustomStatWeights;
 }
