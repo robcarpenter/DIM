@@ -311,17 +311,17 @@ function SettingsPage({
               </div>
             </div>
 
+            <CustomStatsSettings />
+          </section>
+
+          <section id="inventory">
+            <h2>{t('Settings.Inventory')}</h2>
             <div className="setting">
               <label htmlFor="itemSort">{t('Settings.SetSort')}</label>
 
               <SortOrderEditor order={itemSortCustom} onSortOrderChanged={itemSortOrderChanged} />
               <div className="fineprint">{t('Settings.DontForgetDupes')}</div>
             </div>
-            <CustomStatsSettings />
-          </section>
-
-          <section id="inventory">
-            <h2>{t('Settings.Inventory')}</h2>
             <div className="setting">
               <Checkbox
                 label={t('Settings.SingleCharacter')}

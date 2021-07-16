@@ -1,4 +1,8 @@
-import { customStatsSelector, oldCustomTotalSelector } from 'app/dim-api/selectors';
+import {
+  customStatsSelector,
+  oldAndNewCustomStatsSelector,
+  oldCustomTotalSelector,
+} from 'app/dim-api/selectors';
 import BungieImage from 'app/dim-ui/BungieImage';
 import ClassIcon from 'app/dim-ui/ClassIcon';
 import { CustomStatWeightsDisplay } from 'app/dim-ui/CustomStatWeights';
@@ -34,7 +38,7 @@ const classes = [
  * a list of user-defined custom stat displays. each can be switched into editing mode.
  */
 export function CustomStatsSettings() {
-  const customStatList = useSelector(customStatsSelector);
+  const customStatList = useSelector(oldAndNewCustomStatsSelector);
   const [editing, setEditing] = useState('');
   const [weightsMode, setWeightsMode] = useState(false);
   const [provisionalStat, setProvisionalStat] = useState<CustomStatDef>();
@@ -79,7 +83,10 @@ export function CustomStatsSettings() {
         </span>
       )}
       <label htmlFor={''}>{t('Settings.CustomStatTitle')}</label>
-      <div className={clsx(styles.customDesc, 'fineprint')}>{t('Settings.CustomStatDesc')}</div>
+      <div className={clsx(styles.customDesc, 'fineprint')}>
+        {t('Settings.CustomStatDesc1')} {weightsMode && t('Settings.CustomStatDesc2')}{' '}
+        {t('Settings.CustomStatDesc3')}
+      </div>
       <div className={styles.customStatsSettings}>
         {[...(provisionalStat ? [provisionalStat] : []), ...customStatList].map((c) =>
           c.id === editing ? (
@@ -307,8 +314,17 @@ function useSaveStat() {
 function useRemoveStat() {
   const setSetting = useSetSetting();
   const customStatList = useSelector(customStatsSelector);
+  const oldCustomTotals = useSelector(oldCustomTotalSelector);
   return (stat: CustomStatDef) => {
-    if (stat.label === '' || confirm(t('Settings.CustomDelete'))) {
+    if (stat.id.startsWith('__custom__')) {
+      // user is deleting a legacy stat
+      setSetting('customTotalStatsByClass', { ...oldCustomTotals, [stat.class]: [] });
+    } else if (
+      // user is deleting a provisional stat, or already cleared out the name field
+      stat.label === '' ||
+      // user is deleting a full-fledged stat, let's confirm if they are sure
+      confirm(t('Settings.CustomDelete'))
+    ) {
       setSetting(
         'customStats',
         customStatList.filter((s) => s.id !== stat.id).sort(customStatSort)

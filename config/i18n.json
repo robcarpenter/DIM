@@ -841,6 +841,7 @@
     "RiftCooldown": "Rift Cooldown",
     "BarricadeCooldown": "Barricade Cooldown",
     "DodgeCooldown": "Dodge Cooldown",
+    "Custom": "Custom Total",
     "Discipline": "Discipline",
     "Effect": "Effect",
     "Intellect": "Intellect",

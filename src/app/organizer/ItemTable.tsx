@@ -2,7 +2,7 @@ import { DestinyVersion } from '@destinyitemmanager/dim-api-types';
 import { destinyVersionSelector } from 'app/accounts/selectors';
 /* eslint-disable react/jsx-key, react/prop-types */
 import { StatInfo } from 'app/compare/Compare';
-import { customStatsSelector, settingsSelector } from 'app/dim-api/selectors';
+import { oldAndNewCustomStatsSelector, settingsSelector } from 'app/dim-api/selectors';
 import UserGuideLink from 'app/dim-ui/UserGuideLink';
 import { t, tl } from 'app/i18next-t';
 import { setItemNote } from 'app/inventory/actions';
@@ -18,6 +18,7 @@ import { convertToLoadoutItem, newLoadout } from 'app/loadout-drawer/loadout-uti
 import { loadoutsSelector } from 'app/loadout-drawer/selectors';
 import { searchFilterSelector } from 'app/search/search-filter';
 import { setSettingAction } from 'app/settings/actions';
+import { CustomStatDef } from 'app/settings/initial-settings';
 import { toggleSearchQueryComponent } from 'app/shell/actions';
 import { AppIcon, faCaretDown, faCaretUp, spreadsheetIcon, uploadIcon } from 'app/shell/icons';
 import { loadingTracker } from 'app/shell/loading-tracker';
@@ -73,7 +74,7 @@ interface StoreProps {
   hasWishList: boolean;
   isPhonePortrait: boolean;
   enabledColumns: string[];
-  customStatDefs: ReturnType<typeof customStatsSelector>;
+  customStatDefs: CustomStatDef[];
   loadouts: Loadout[];
   newItems: Set<string>;
   destinyVersion: DestinyVersion;
@@ -110,7 +111,7 @@ function mapStateToProps() {
       hasWishList: hasWishListSelector(state),
       isPhonePortrait: state.shell.isPhonePortrait,
       enabledColumns: settingsSelector(state)[columnSetting(itemType)],
-      customStatDefs: customStatsSelector(state),
+      customStatDefs: oldAndNewCustomStatsSelector(state),
       loadouts: loadoutsSelector(state),
       newItems: state.inventory.newItems,
       destinyVersion: destinyVersionSelector(state),

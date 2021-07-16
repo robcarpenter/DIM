@@ -1,5 +1,5 @@
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
-import { customStatsSelector } from 'app/dim-api/selectors';
+import { oldAndNewCustomStatsSelector } from 'app/dim-api/selectors';
 import { t } from 'app/i18next-t';
 import { D1ItemCategoryHashes } from 'app/search/d1-known-values';
 import {
@@ -171,7 +171,7 @@ export function buildStats(
 
     // synthesize custom stats for meaningfully stat-bearing items
     if (createdItem.type !== 'ClassItem') {
-      const customStats = customStatsSelector(reduxStore.getState());
+      const customStats = oldAndNewCustomStatsSelector(reduxStore.getState());
 
       for (let i = 0; i < customStats.length; i++) {
         const customStat = customStats[i];

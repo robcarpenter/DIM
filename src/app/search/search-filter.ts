@@ -1,5 +1,5 @@
 import { ItemHashTag } from '@destinyitemmanager/dim-api-types';
-import { customStatsSelector, settingsSelector } from 'app/dim-api/selectors';
+import { oldAndNewCustomStatsSelector, settingsSelector } from 'app/dim-api/selectors';
 import { CustomStatDef } from 'app/settings/initial-settings';
 import { RootState } from 'app/store/types';
 import { errorLog } from 'app/utils/log';
@@ -44,7 +44,7 @@ export const filterFactorySelector = createSelector(
   itemInfosSelector,
   itemHashTagsSelector,
   (state: RootState) => settingsSelector(state).language,
-  customStatsSelector,
+  oldAndNewCustomStatsSelector,
   makeSearchFilterFactory
 );
 

@@ -1,7 +1,10 @@
 import { DestinyVersion } from '@destinyitemmanager/dim-api-types';
 import { DestinyAccount } from 'app/accounts/destiny-account';
 import { currentAccountSelector, destinyVersionSelector } from 'app/accounts/selectors';
+import { t } from 'app/i18next-t';
+import { CustomStatDef, CustomStatWeights } from 'app/settings/initial-settings';
 import { RootState } from 'app/store/types';
+import { DestinyClass } from 'bungie-api-ts/destiny2';
 import { createSelector } from 'reselect';
 
 export function makeProfileKeyFromAccount(account: DestinyAccount) {
@@ -17,6 +20,30 @@ export const oldCustomTotalSelector = (state: RootState) =>
 
 export const customStatsSelector = (state: RootState) => state.dimApi.settings.customStats;
 
+export const oldAndNewCustomStatsSelector = (state: RootState): CustomStatDef[] => {
+  const oldCustomStats = oldCustomTotalSelector(state);
+  const convertedOldStats: CustomStatDef[] = [];
+
+  for (const classEnumString in oldCustomStats) {
+    const classEnum = parseInt(classEnumString) as DestinyClass;
+    const statHashList = oldCustomStats[classEnum];
+
+    if (classEnum !== DestinyClass.Unknown && statHashList?.length > 0) {
+      const weights: CustomStatWeights = {};
+      for (const statHash of statHashList) {
+        weights[statHash] = 1;
+      }
+      convertedOldStats.push({
+        label: t('Stats.Custom'),
+        shortLabel: 'custom',
+        class: classEnum,
+        weights,
+        id: '__custom__' + classEnumString,
+      });
+    }
+  }
+  return [...convertedOldStats, ...customStatsSelector(state)];
+};
 export const apiPermissionGrantedSelector = (state: RootState) =>
   state.dimApi.apiPermissionGranted === true;
 
