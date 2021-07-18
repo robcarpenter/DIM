@@ -1,10 +1,10 @@
 import { D2ManifestDefinitions } from 'app/destiny2/d2-definitions';
-import { settingsSelector } from 'app/dim-api/selectors';
+import { oldAndNewCustomStatsSelector } from 'app/dim-api/selectors';
 import { ItemInfos } from 'app/inventory/dim-item-info';
 import { DimItem } from 'app/inventory/item-types';
 import { Loadout } from 'app/loadout-drawer/loadout-types';
 import { d2ManifestSelector } from 'app/manifest/selectors';
-import { Settings } from 'app/settings/initial-settings';
+import { CustomStatDef } from 'app/settings/initial-settings';
 import { createSelector } from 'reselect';
 import {
   allItemsSelector,
@@ -29,7 +29,7 @@ export const suggestionsContextSelector = createSelector(
   d2ManifestSelector,
   itemInfosSelector,
   allNotesHashtagsSelector,
-  settingsSelector,
+  oldAndNewCustomStatsSelector,
   makeSuggestionsContext
 );
 
@@ -39,7 +39,7 @@ function makeSuggestionsContext(
   d2Manifest: D2ManifestDefinitions,
   itemInfos: ItemInfos,
   allNotesHashtags: string[],
-  settings: Settings
+  customStats: CustomStatDef[]
 ): SuggestionsContext {
   return {
     allItems,
@@ -47,7 +47,7 @@ function makeSuggestionsContext(
     d2Manifest,
     itemInfos,
     allNotesHashtags,
-    settings,
+    customStats,
   };
 }
 

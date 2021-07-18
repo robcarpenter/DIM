@@ -994,7 +994,7 @@ function stubSearchRootState(account: DestinyAccount) {
       currentAccount: 0,
     },
     inventory: { stores: [] },
-    dimApi: { profiles: {} },
+    dimApi: { profiles: {}, settings: { customTotalStatsByClass: {}, customStats: [] } },
     manifest: {},
   } as any as RootState;
 }

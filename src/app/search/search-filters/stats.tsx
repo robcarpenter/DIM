@@ -1,9 +1,8 @@
-import { settingsSelector } from 'app/dim-api/selectors';
+import { oldAndNewCustomStatsSelector } from 'app/dim-api/selectors';
 import { tl } from 'app/i18next-t';
 import { DimItem, DimStat } from 'app/inventory/item-types';
 import { DimStore } from 'app/inventory/store-types';
 import { maxLightItemSet, maxStatLoadout } from 'app/loadout-drawer/auto-loadouts';
-import { simplifyStatLabel } from 'app/settings/custom-stats';
 import _ from 'lodash';
 import reduxStore from '../../store/store';
 import { CUSTOM_STAT_BASE_HASH } from '../d2-known-values';
@@ -23,14 +22,11 @@ const statFilters: FilterDefinition[] = [
     keywords: 'stat',
     description: tl('Filter.Stats'),
     format: 'range',
-    suggestionsGenerator: ({ settings }) =>
+    suggestionsGenerator: ({ customStats }) =>
       generateSuggestionsForFilter({
         keywords: 'stat',
         format: 'range',
-        suggestions: [
-          ...allStatNames,
-          ...(settings?.customStats.map((c) => simplifyStatLabel(c.label)) ?? []),
-        ],
+        suggestions: [...allStatNames, ...(customStats?.map((c) => c.shortLabel) ?? [])],
       }),
     filter: ({ filterValue }) => statFilterFromString(filterValue),
   },
@@ -38,13 +34,13 @@ const statFilters: FilterDefinition[] = [
     keywords: 'basestat',
     description: tl('Filter.StatsBase'),
     format: 'range',
-    suggestionsGenerator: ({ settings }) =>
+    suggestionsGenerator: ({ customStats }) =>
       generateSuggestionsForFilter({
         keywords: 'basestat',
         format: 'range',
         suggestions: [
           ...searchableArmorStatNames,
-          ...(settings?.customStats.map((c) => simplifyStatLabel(c.label)) ?? []),
+          ...(customStats?.map((c) => c.shortLabel) ?? []),
         ],
       }),
     filter: ({ filterValue }) => statFilterFromString(filterValue, true),
@@ -134,7 +130,7 @@ function statFilterFromString(
   // this will be used to index into the right property of a DimStat
   const byWhichValue = byBaseValue ? 'base' : 'value';
 
-  // a special case filter where we check for any single stat matching the comparator
+  // a special case filter where we check for any single (natural) stat matching the comparator
   if (statNames === 'any') {
     const statMatches = (s: DimStat) =>
       armorAnyStatHashes.includes(s.statHash) && numberComparisonFunction(s[byWhichValue]);
@@ -165,8 +161,8 @@ function createStatCombiner(statString: string, byWhichValue: 'base' | 'value') 
     const averagedHashes = addendString.split('&').map((statName) => {
       let statHash = statHashByName[statName];
       if (!statHash) {
-        const { customStats } = settingsSelector(reduxStore.getState());
-        const index = customStats.findIndex((s) => simplifyStatLabel(s.label) === statName);
+        const customStats = oldAndNewCustomStatsSelector(reduxStore.getState());
+        const index = customStats.findIndex((s) => s.shortLabel === statName);
         if (index !== -1) {
           statHash = CUSTOM_STAT_BASE_HASH - index;
         }

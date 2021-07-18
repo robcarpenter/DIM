@@ -5,7 +5,7 @@ import { ItemInfos } from 'app/inventory/dim-item-info';
 import { DimItem } from 'app/inventory/item-types';
 import { DimStore } from 'app/inventory/store-types';
 import { Loadout } from 'app/loadout-drawer/loadout-types';
-import { CustomStatDef, Settings } from 'app/settings/initial-settings';
+import { CustomStatDef } from 'app/settings/initial-settings';
 import { InventoryWishListRoll } from 'app/wishlists/wishlists';
 type I18nInput = Parameters<typeof t>;
 
@@ -45,7 +45,7 @@ export interface SuggestionsContext {
   itemInfos?: ItemInfos;
   d2Manifest?: D2ManifestDefinitions;
   allNotesHashtags?: string[];
-  settings?: Settings;
+  customStats?: CustomStatDef[];
 }
 
 // TODO: FilterCategory

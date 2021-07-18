@@ -21,7 +21,6 @@ import { useSelector } from 'react-redux';
 import { v4 as uuidv4 } from 'uuid';
 // eslint-disable-next-line css-modules/no-unused-class
 import weightsStyles from '../dim-ui/CustomStatWeights.m.scss';
-import { simplifyStatLabel } from './custom-stats';
 import styles from './CustomStatsSettings.m.scss';
 import { useSetSetting } from './hooks';
 import { CustomStatDef, CustomStatWeights } from './initial-settings';
@@ -356,4 +355,8 @@ function warnInvalidCustomStat(errorMsg: string) {
     body: errorMsg,
     duration: 5000,
   });
+}
+
+function simplifyStatLabel(s: string) {
+  return s.toLocaleLowerCase().replace(/\W/gu, '');
 }

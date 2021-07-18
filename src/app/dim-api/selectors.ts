@@ -15,10 +15,14 @@ export function makeProfileKey(platformMembershipId: string, destinyVersion: Des
 }
 
 export const settingsSelector = (state: RootState) => state.dimApi.settings;
-export const oldCustomTotalSelector = (state: RootState) =>
-  state.dimApi.settings.customTotalStatsByClass;
+// eslint-disable-next-line arrow-body-style
+export const oldCustomTotalSelector = (state: RootState) => {
+  // console.log(Object.keys(state));
+  // console.log(Object.keys(state.dimApi));
+  return settingsSelector(state).customTotalStatsByClass;
+};
 
-export const customStatsSelector = (state: RootState) => state.dimApi.settings.customStats;
+export const customStatsSelector = (state: RootState) => settingsSelector(state).customStats;
 
 export const oldAndNewCustomStatsSelector = (state: RootState): CustomStatDef[] => {
   const oldCustomStats = oldCustomTotalSelector(state);
