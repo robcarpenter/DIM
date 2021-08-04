@@ -41,7 +41,7 @@ import {
   getItemKillTrackerInfo,
   getItemYear,
   getMasterworkStatNames,
-  getSpecialtySocketMetadatas,
+  getInterestingSocketMetadatas,
   isD1Item,
   isSunset,
 } from 'app/utils/item-utils';
@@ -339,13 +339,13 @@ export function getColumns(
         header: t('Organizer.Columns.ModSlot'),
         // TODO: only show if there are mod slots
         value: (item) =>
-          getSpecialtySocketMetadatas(item)
+          getInterestingSocketMetadatas(item)
             ?.map((m) => m.slotTag)
             .join(','),
         cell: (value, item) =>
-          value && <SpecialtyModSlotIcon className={styles.modslotIcon} item={item} />,
+          value && <SpecialtyModSlotIcon className={styles.modslotIcon} item={item} onlyInteresting={true}/>,
         filter: (_val, item) => {
-          const modSlotMetadata = getSpecialtySocketMetadatas(item);
+          const modSlotMetadata = getInterestingSocketMetadatas(item);
           return `modslot:${modSlotMetadata?.[0].slotTag || 'none'}`;
         },
       },
